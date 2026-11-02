@@ -59,8 +59,8 @@ function RequestQueryForm() {
                     className="!text-[14px] !font-[400] font-poppins !mb-8 !leading-[170%] tracking-[-0.16px]"
                   >
                     We’re here to help you bring your ideas to life! Whether
-                    you’re looking for software solutions, our team is just a
-                    message away.
+                    you’re looking for custom software development or technical
+                    consulting, our team is just a message away.
                   </Typography>
                   <Typography
                     variant="subtitle1"
@@ -93,7 +93,7 @@ function RequestQueryForm() {
                         component="p"
                         className="!text-lg !font-[500] font-poppins !leading-[140%]"
                       >
-                        Want To
+                        Have a Question or
                       </Typography>
                       <Typography
                         variant="h6"
@@ -101,7 +101,7 @@ function RequestQueryForm() {
                         gutterBottom
                         className="!text-xl !font-[600] !text-ersPrimary font-poppins !leading-[140%]"
                       >
-                        Request a Query?
+                        Need a Quote?
                       </Typography>
                       <Divider className="w-[170px] !border-[1.5px]" />
                     </Box>
@@ -401,7 +401,7 @@ function RequestQueryForm() {
                         gutterBottom
                         className="!text-base !font-[500] font-poppins !leading-[140%] text-ersPrimary"
                       >
-                        Head Of Sales
+                        Head of Sales
                       </Typography>
                     </Box>
                     <Box className="text-center">

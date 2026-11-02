@@ -20,7 +20,7 @@ function blogs({ initialBlogs = [] }) {
       <div className="w-full max-w-[1920px] mx-auto">
         <Careerhero
           btnText={"Blogs"}
-          Mainheading={"Insights & Expertise <br /> from Our Blogs"}
+          Mainheading={"Insights & Expertise <br /> from Our Blog"}
           subHeading={
             "Stay updated with our thought leadership, success stories, and company updates. Dive in and explore a wealth of content aimed at helping you stay ahead in the fast-paced world of tech."
           }

@@ -171,7 +171,7 @@ function Projects({ title }) {
                       href="https://aconomy.com/"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"
@@ -189,7 +189,7 @@ function Projects({ title }) {
                     <Image
                       src={BCCOIN}
                       className="object-cover img-style"
-                      alt="..."
+                      alt="BlackCardCoin project preview"
                     />
                   </Box>
                 </Box>
@@ -208,7 +208,7 @@ function Projects({ title }) {
                     gutterBottom
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
-                    A crypto based system offering to buy BCCOIN for staking
+                    A crypto-based platform enabling users to buy BCCOIN for staking
                     rewards and exclusive access to a personal crypto card.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
@@ -217,7 +217,7 @@ function Projects({ title }) {
                       href="https://blackcardcoin.com"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"
@@ -235,7 +235,7 @@ function Projects({ title }) {
                     <Image
                       src={Focusmonk}
                       className="object-cover img-style"
-                      alt="..."
+                      alt="FocusMonk project preview"
                     />
                   </Box>
                 </Box>
@@ -263,7 +263,7 @@ function Projects({ title }) {
                       href="https://www.focusmonk.co"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"
@@ -307,7 +307,7 @@ function Projects({ title }) {
                       href="https://salharo.us"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"
@@ -325,7 +325,7 @@ function Projects({ title }) {
                     <Image
                       src={Wise1HRM}
                       className="object-cover img-style"
-                      alt="..."
+                      alt="Wise1HRM project preview"
                     />
                   </Box>
                 </Box>
@@ -353,7 +353,7 @@ function Projects({ title }) {
                       href="https://app.wise1ne.com"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"
@@ -399,7 +399,7 @@ function Projects({ title }) {
                       href="https://t.me/vymopay_bot"
                       target="_blank"
                     >
-                      view project
+                      View Project
                     </Link>
                     <Link
                       className="capitalize !text-xs text-ersPrimary !font-[600] font-poppins !leading-[140%] flex items-center hover:underline"

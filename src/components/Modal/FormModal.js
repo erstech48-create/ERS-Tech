@@ -47,12 +47,13 @@ function FormModal({ open, onClose, data }) {
                 </p>
               </Box>
               <Formik
+                enableReinitialize
                 initialValues={{
                   email: "",
                   Name: "",
                   Contact: "",
                   Message: "",
-                  Subject: "",
+                  Subject: data === "other" ? "" : (data?.title || ""),
                   file: null,
                 }}
                 validationSchema={Yup.object().shape({
@@ -68,7 +69,9 @@ function FormModal({ open, onClose, data }) {
                     .max(15, "Too Long!")
                     .required("Phone Number is required"),
                   Message: Yup.string().required("Message is required"),
-                  Subject: Yup.string().required("Subject is required"),
+                  Subject: data === "other"
+                    ? Yup.string().required("Subject is required")
+                    : Yup.string(),
                   file: Yup.mixed()
                     .nullable()
                     .test("fileType", "Only PDF files are allowed", (value) => {
@@ -92,7 +95,7 @@ function FormModal({ open, onClose, data }) {
                     formData.append("contact", values.Contact);
                     formData.append(
                       "subject",
-                      data === "other" ? values.Subject : data.title
+                      data === "other" ? values.Subject : (data?.title || values.Subject || "Job Application")
                     );
                     formData.append("message", values.Message);
                     if (values.file) {
@@ -281,7 +284,7 @@ function FormModal({ open, onClose, data }) {
                         >
                           Resume*
                           <br />
-                          <span className="text-[10px]">Only pdf</span>
+                          <span className="text-[10px]">(PDF Only)</span>
                         </Typography>
                         <Box
                           sx={{

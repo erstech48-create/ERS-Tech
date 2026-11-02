@@ -15,7 +15,7 @@ function IndustriesWeServe() {
   let Industries = [
     {
       image: basket,
-      title: `E Commerce <br/> Solutions`,
+      title: `E-Commerce <br/> Solutions`,
       description:
         "We empower e-commerce businesses with innovative blockchain and Fintech solutions, driving growth and enhancing security, scalability, and customer experience.",
     },
@@ -27,9 +27,9 @@ function IndustriesWeServe() {
     },
     {
       image: Travel,
-      title: `Tour & <br /> Travels`,
+      title: `Travel & <br /> Tourism`,
       description:
-        "We bring innovation to the travel and tours sector by integrating advanced technology and customized solutions,ensuring seamless experiences, efficiency, and growth for businesses in this dynamic industry.",
+        "We bring innovation to the travel and tours sector by integrating advanced technology and customized solutions, ensuring seamless experiences, efficiency, and growth for businesses in this dynamic industry.",
     },
     {
       image: Education,

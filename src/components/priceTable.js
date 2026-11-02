@@ -33,7 +33,7 @@ function priceTable() {
             component={"h2"}
             gutterBottom
           >
-            choose your <span className="text-ersPrimary">plan</span>
+            Choose Your <span className="text-ersPrimary">Plan</span>
           </Typography>
           <Typography
             className="!text-sm !font-[400] font-poppins !leading-[140%] !tracking-[-0.16px] text-center"
@@ -109,7 +109,7 @@ function priceTable() {
                     onClick={scrollToContact}
                     className="bg-gradient-to-r from-[#29BCF1] to-[#0F53CE] !text-white !px-6 !rounded-[50px] !capitalize !w-[150px] !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] send-msg-btn cursor-pointer"
                   >
-                    Get Quote
+                    Get a Quote
                   </Button>
                 </Box>
               </Box>
@@ -121,7 +121,7 @@ function priceTable() {
                     <Image
                       src={Customdevelop}
                       className="w-[50%] object-cover"
-                      alt="..."
+                      alt="Custom Development plan icon"
                     />
                   </Box>
                 </Box>
@@ -181,7 +181,7 @@ function priceTable() {
                     onClick={scrollToContact}
                     className="bg-gradient-to-r from-[#29BCF1] to-[#0F53CE] !text-white !px-6 !rounded-[50px] !capitalize !w-[150px] !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] send-msg-btn cursor-pointer"
                   >
-                    Get Quote
+                    Get a Quote
                   </Button>
                 </Box>
               </Box>
@@ -193,7 +193,7 @@ function priceTable() {
                     <Image
                       src={Team}
                       className="w-[50%] object-cover"
-                      alt="..."
+                      alt="Dedicated Team plan icon"
                     />
                   </Box>
                 </Box>
@@ -201,7 +201,7 @@ function priceTable() {
                   variant="h5"
                   className="text-center capitalize !text-xl !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] !mb-0"
                 >
-                  Hire A Dedicated Staff
+                  Hire a Dedicated Team
                 </Typography>
                 <Box className="mx-4 py-4">
                   <Divider className="!border-[rgba(112,112,112,0.3)]" />
@@ -231,8 +231,7 @@ function priceTable() {
                         variant="subtitle2"
                         className="font-poppins !font-[500] !text-[14px] !leading-[180%] !tracking-[-0.16px]"
                       >
-                        Technical Full transparency with 
-                        daily/weekly updates
+                        Full transparency with daily and weekly updates
                       </Typography>
                     </ListItem>
                     <ListItem className="price-item">
@@ -253,7 +252,7 @@ function priceTable() {
                     onClick={scrollToContact}
                     className="bg-gradient-to-r from-[#29BCF1] to-[#0F53CE] !text-white !px-6 !rounded-[50px] !capitalize !w-[150px] !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] send-msg-btn cursor-pointer"
                   >
-                    Get Quote
+                    Get a Quote
                   </Button>
                 </Box>
               </Box>

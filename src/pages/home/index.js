@@ -21,15 +21,15 @@ function HomePage() {
       image: ClientImg,
       designation: "Onboarding Officer Fintech Cashier",
       description:
-        "My name is Arie Amir and I am the onboarding officer and customer support at FINTECHCASHIER, & as such comprehend ErsTech specialty in developing & maintaining sophisticated APIs for our LATAM Fintech markets. It maintains all high professional responsiveness & cooperation to guarantee our business success in those markets. I warmly recommend a partnership with ERSTECH for all potential customers.",
+        "My name is Arie Amir and I am the onboarding officer and customer support at FINTECHCASHIER, & as such appreciate ERS TECH's expertise in developing & maintaining sophisticated APIs for our LATAM Fintech markets. They maintain high professional responsiveness & cooperation to guarantee our business success in those markets. I warmly recommend a partnership with ERS TECH for all potential customers.",
     },
     {
       id: 2,
       name: "Faiqa Anwer",
       image: Client2,
-      designation: "Owner Liftsplit App",
+      designation: "Owner LiftSplit App",
       description:
-        "My name is Faiqa, I am the founder of liftsplit app. ERSTECH has developed an application for my business that was top-notch in quality. I am satisfied with the company's services as their team is highly cooperative and expert in their domain. Highly recommended!",
+        "My name is Faiqa, and I am the founder of the LiftSplit app. ERS TECH has developed an application for my business that was top-notch in quality. I am satisfied with the company's services as their team is highly cooperative and expert in their domain. Highly recommended!",
     },
   ];
   return (
@@ -47,7 +47,7 @@ function HomePage() {
         <Projects title={{ titleOne: "Our Latest", titleTwo: "Projects" }} page={"home"} />
         <CoreValues />
         <ClientsAboutUs
-          Heading={"What's Clients Says"}
+          Heading={"What Our Clients Say"}
           Testimonials={TestimonialsClients}
         />
       </div>

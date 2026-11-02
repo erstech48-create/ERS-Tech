@@ -112,7 +112,7 @@ function CoreValues() {
                               letterSpacing: "-0.16px",
                             },
                           }}
-                          primary="Sincerety"
+                          primary="Sincerity"
                           secondary="Transparency you can trust."
                         />
                       </Box>
@@ -146,7 +146,7 @@ function CoreValues() {
                               letterSpacing: "-0.16px",
                             },
                           }}
-                          primary="Team Work"
+                          primary="Teamwork"
                           secondary="Collaboration drives our success."
                         />
                       </Box>
@@ -248,7 +248,7 @@ function CoreValues() {
                               letterSpacing: "-0.16px",
                             },
                           }}
-                          primary="Best Support"
+                          primary="Dedicated Support"
                           secondary="Reliable assistance, always."
                         />
                       </Box>
