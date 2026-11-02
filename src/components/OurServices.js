@@ -27,7 +27,7 @@ function OurServices({ title, page }) {
     },
     {
       image: MobApp,
-      title: "Mobile App development",
+      title: "Mobile App Development",
       description:
         "We create intuitive, high-performance mobile apps tailored to your business needs, ensuring seamless user experiences and innovation.",
     },
@@ -35,13 +35,13 @@ function OurServices({ title, page }) {
       image: softwareDev,
       title: "Software Development",
       description:
-        " We deliver robust and tailored software solutions,simplifying complex challenges to empower businesses with innovation and efficiency.",
+        "We deliver robust and tailored software solutions, simplifying complex challenges to empower businesses with innovation and efficiency.",
     },
     {
       image: AIRobots,
       title: "AI / Robotics",
       description:
-        " We deliver AI-driven and robotic solutions,revolutionizing industries with intelligent automation and smart technologies for enhanced productivity.",
+        "We deliver AI-driven and robotic solutions, revolutionizing industries with intelligent automation and smart technologies for enhanced productivity.",
     },
     {
       image: Blockchain,
@@ -112,7 +112,7 @@ function OurServices({ title, page }) {
                           className="absolute bottom-0 text-[14px] text-ersPrimary !font-[400] font-poppins flex items-center pb-4 read-more-btn"
                           href="#contact"
                         >
-                          Acquire Now &nbsp;
+                          Get Started &nbsp;
                           <MdArrowRightAlt
                             size={20}
                             className="arrow-read-more"
@@ -155,7 +155,7 @@ function OurServices({ title, page }) {
                           component="h3"
                           gutterBottom
                         >
-                          {"Technical support"}
+                          {"Technical Support"}
                         </Typography>
                         <Typography
                           className="!text-[14px] !font-[400] !leading-normal font-poppins"
@@ -172,7 +172,7 @@ function OurServices({ title, page }) {
                         className="absolute bottom-0 text-[14px] text-ersPrimary !font-[400] font-poppins flex items-center pb-4 read-more-btn"
                         href="#contact"
                       >
-                        Acquire Now &nbsp;
+                        Get Started &nbsp;
                         <MdArrowRightAlt
                           size={20}
                           className="arrow-read-more"

@@ -19,7 +19,7 @@ function WhyChooseUs() {
             component={"h2"}
             gutterBottom
           >
-            why choose <span className="text-ersPrimary">us?</span>
+            Why Choose <span className="text-ersPrimary">Us?</span>
           </Typography>
         </Box>
         <Box className="w-[90%] max-w-full mx-auto mt-[6rem] choose-us pb-[5rem]">
@@ -41,7 +41,7 @@ function WhyChooseUs() {
                   gutterBottom
                   className="!text-[18px] !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] text-center !mb-4"
                 >
-                  Innovation <br /> & Doers
+                  Innovators <br /> & Doers
                 </Typography>
                 <Typography
                   variant="body2"
@@ -198,7 +198,7 @@ function WhyChooseUs() {
                   <Image
                     src={TeamMember}
                     className="w-[50px] object-cover translate-y-[4px]"
-                    alt=""
+                    alt="Haider Ali Mughal, Chief Executive Officer at ERS TECH"
                   />
                 </Box>
                 <Box className="text-start">

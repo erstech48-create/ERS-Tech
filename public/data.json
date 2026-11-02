@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "Wise1HRM",
+    "name": "Wise1HRM Web",
     "category": "web app",
     "imageUrl": "/assets/projects/Mockups/hrm.webp",
     "url": "https://app.wise1ne.com",
@@ -13,7 +13,7 @@
   },
   {
     "id": 2,
-    "name": "FocusMonk",
+    "name": "FocusMonk Web",
     "category": "web app",
     "imageUrl": "/assets/projects/Mockups/fm.webp",
     "url": "https://focusmonk.app",
@@ -25,7 +25,7 @@
   },
   {
     "id": 3,
-    "name": "Aconomy",
+    "name": "Aconomy Web",
     "category": "web app ,blockchain",
     "imageUrl": "/assets/projects/Mockups/aconomy.webp",
     "url": "https://aconomy.com",
@@ -56,7 +56,7 @@
     "techStack": {
       "frontend": "React",
       "backend": "Laravel",
-      "database": "MySql"
+      "database": "MySQL"
     }
   },
   {
@@ -80,7 +80,7 @@
     "techStack": {
       "frontend": "React.js",
       "backend": "Laravel",
-      "database": "MySql"
+      "database": "MySQL"
     }
   },
   {
@@ -92,7 +92,7 @@
     "techStack": {
       "frontend": "React.js",
       "backend": "Laravel",
-      "database": "MySql"
+      "database": "MySQL"
     }
   },
   {
@@ -102,17 +102,14 @@
     "imageUrl": "/assets/projects/Mockups/liftsplit-app.webp",
     "url": "https://liftsplit.com",
     "techStack": {
-      "frontend": [
-        "Android",
-        "IOS"
-      ],
+      "frontend": "Android & iOS",
       "backend": "Node.js",
       "database": "MongoDB"
     }
   },
   {
     "id": 10,
-    "name": "FocusMonk",
+    "name": "FocusMonk Mobile",
     "category": "mob app",
     "imageUrl": "/assets/projects/Mockups/fm-app.webp",
     "url": "https://www.focusmonk.co",
@@ -124,7 +121,7 @@
   },
   {
     "id": 11,
-    "name": "Wise1HRM",
+    "name": "Wise1HRM Mobile",
     "category": "mob app",
     "imageUrl": "/assets/projects/Mockups/hrm-app.webp",
     "url": "https://app.wise1ne.com",
@@ -136,7 +133,7 @@
   },
   {
     "id": 12,
-    "name": "Aconomy",
+    "name": "Aconomy Mobile",
     "category": "mob app",
     "imageUrl": "/assets/projects/Mockups/aconomy-app.webp",
     "url": "https://aconomy.com",
@@ -160,7 +157,7 @@
   },
   {
     "id": 15,
-    "name": "FocusMonk",
+    "name": "FocusMonk Desktop",
     "category": "software",
     "imageUrl": "/assets/projects/Mockups/fm.webp",
     "url": "https://focusmonk.co",

@@ -66,7 +66,7 @@ function FeaturedBlogs({ initialBlogs = null }) {
           <Box className="h-full">
             {isLoading ? (
               <Loader />
-            ) : (
+            ) : blogsToDisplay.length > 0 ? (
               <Grid container spacing={6}>
                 {blogsToDisplay?.map((data, i) => {
                   return (
@@ -129,6 +129,27 @@ function FeaturedBlogs({ initialBlogs = null }) {
                   );
                 })}
               </Grid>
+            ) : (
+              <Box className="text-center py-16 px-4 bg-white/60 rounded-[20px] border border-[#C1ECFB] max-w-xl mx-auto shadow-sm">
+                <Typography
+                  variant="h5"
+                  className="font-poppins !font-[600] !text-xl !text-[#1057CF] !mb-2"
+                >
+                  Articles Coming Soon
+                </Typography>
+                <Typography
+                  variant="body1"
+                  className="font-poppins !font-[400] !text-sm !text-gray-600 !mb-6"
+                >
+                  We are curating insightful articles on Fintech, blockchain, AI, and modern software engineering. Check back soon!
+                </Typography>
+                <Link
+                  href="/services"
+                  className="inline-block bg-gradient-to-r from-[#29BCF1] to-[#0F53CE] !text-white !py-2.5 !px-6 rounded-full font-poppins text-sm font-medium hover:shadow-lg transition-shadow"
+                >
+                  Explore Our Services
+                </Link>
+              </Box>
             )}
           </Box>
         </Box>

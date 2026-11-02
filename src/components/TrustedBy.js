@@ -12,6 +12,23 @@ import CLD2 from "@/../public/assets/images/CLD-02.png";
 import CLD1 from "@/../public/assets/images/CLD-01.png";
 import Image from "next/image";
 
+const clientLogos = [
+  { src: CLD5, alt: "Bakri International Energy logo" },
+  { src: CLD4, alt: "Euro Oil logo" },
+  { src: CLD3, alt: "Alkaram Studio logo" },
+  { src: CLD2, alt: "GSK Pakistan logo" },
+  { src: CLD1, alt: "JS Bank logo" },
+  { src: CLD6, alt: "QuikiPay logo" },
+  { src: CLD7, alt: "Fintech Cashier logo" },
+  { src: CLD8, alt: "FocusMonk logo" },
+  { src: CLD9, alt: "Salharo logo" },
+  { src: CLD10, alt: "LiftSplit logo" },
+  { src: CLD5, alt: "Bakri International Energy logo" },
+  { src: CLD4, alt: "Euro Oil logo" },
+  { src: CLD3, alt: "Alkaram Studio logo" },
+  { src: CLD2, alt: "GSK Pakistan logo" },
+];
+
 function TrustedBy() {
   return (
     <>
@@ -29,94 +46,20 @@ function TrustedBy() {
           </Box>
           <div className="slider">
             <div className="slide-track">
-              <div className="slide">
-                <Image src={CLD5} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD4} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD3} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD2} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD1} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD6} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD7} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD8} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD9} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD10} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD5} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD4} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD3} height="100" width="250" alt="" />
-              </div>
-              <div className="slide">
-                <Image src={CLD2} height="100" width="250" alt="" />
-              </div>
+              {clientLogos.map((client, idx) => (
+                <div key={`track1-${idx}`} className="slide">
+                  <Image src={client.src} height="100" width="250" alt={client.alt} />
+                </div>
+              ))}
             </div>
           </div>
           <div className="slider-left">
             <div className="slide-track-left">
-              <div className="slide-left">
-                <Image src={CLD5} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD4} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD3} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD2} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD1} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD6} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD7} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD8} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD9} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD10} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD5} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD4} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD3} height="100" width="250" alt="" />
-              </div>
-              <div className="slide-left">
-                <Image src={CLD2} height="100" width="250" alt="" />
-              </div>
+              {clientLogos.map((client, idx) => (
+                <div key={`track2-${idx}`} className="slide-left">
+                  <Image src={client.src} height="100" width="250" alt={client.alt} />
+                </div>
+              ))}
             </div>
           </div>
         </Box>

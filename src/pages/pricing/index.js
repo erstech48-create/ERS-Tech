@@ -20,9 +20,9 @@ function pricing() {
       <div className="w-full max-w-[1920px] mx-auto">
         <Careerhero
           btnText={"Pricing"}
-          Mainheading={"Your Plan-Your Way"}
+          Mainheading={"Your Plan — Your Way"}
           subHeading={
-            "Choose a plan that suits well to your requirements and specifications."
+            "Choose a plan tailored to your requirements and specifications."
           }
           subHeading2={"Want a customized plan? Get a Quote."}
           img={PricingHero}

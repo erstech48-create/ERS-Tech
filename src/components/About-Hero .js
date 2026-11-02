@@ -40,11 +40,10 @@ function Hero() {
                 <Typography
                   variant="subtitle1"
                   component={"p"}
-                  className="!leading-[170%] xxl:!text-lg xl:!text-base lg:!text-sm md:!text-sm sm:!text-sm xsm:!text-[13px] xxs:!text-[12px] xxxs:!text-[12px] !font-[400] font-poppins !capitalize text-white xxl:w-[65%] xl:w-[58%] lg:w-[55%] md:w-[55%] sm:w-full xsm:w-full xxs:w-full xxxs:w-full !mb-6"
+                  className="!leading-[170%] xxl:!text-lg xl:!text-base lg:!text-sm md:!text-sm sm:!text-sm xsm:!text-[13px] xxs:!text-[12px] xxxs:!text-[12px] !font-[400] font-poppins text-white xxl:w-[65%] xl:w-[58%] lg:w-[55%] md:w-[55%] sm:w-full xsm:w-full xxs:w-full xxxs:w-full !mb-6"
                 >
-                  We offer an IT guide to a vast variety of organizations
-                  throughout the world. We continue to provide strategic value
-                  in the days, weeks & years after the launch of the product.
+                  We serve as a strategic technology partner to organizations
+                  worldwide, delivering long-term value well beyond product launch.
                 </Typography>
                 <Box sx={{ width: "100%", height: "200px" }}>
                   <Box>
@@ -86,7 +85,7 @@ function Hero() {
                                   : "!text-[16px] !font-[500] font-poppins !leading-[140%] !text-white capitalize"
                               }
                             >
-                              Our Vission
+                              Our Vision
                             </Typography>
                           }
                           value="2"
@@ -102,7 +101,7 @@ function Hero() {
                                   : "!text-[16px] !font-[500] font-poppins !leading-[140%] !text-white capitalize"
                               }
                             >
-                              Our Value
+                              Our Values
                             </Typography>
                           }
                           value="3"

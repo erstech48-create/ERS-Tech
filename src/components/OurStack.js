@@ -6,7 +6,7 @@ import defaultStackData from "../../public/stackdata.json";
 const TABS = [
   { key: "web-dev", label: "Web Development" },
   { key: "app-dev", label: "App Development" },
-  { key: "dev-ops", label: "Dev Ops" },
+  { key: "dev-ops", label: "DevOps" },
   { key: "uiux", label: "UI/UX Design" },
   { key: "technical-support", label: "Technical Support" },
 ];

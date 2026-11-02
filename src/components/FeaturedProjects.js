@@ -106,7 +106,7 @@ function FeaturedProjects({ initialProjects = [] }) {
                 selected === "software" ? "border-actived !text-ersPrimary" : ""
               }`}
             >
-              Software development
+              Software Development
             </button>
             <button
               onClick={() => handleCategory("blockchain")}
@@ -117,7 +117,7 @@ function FeaturedProjects({ initialProjects = [] }) {
                   : ""
               }`}
             >
-              BlockChain Development
+              Blockchain Development
             </button>
           </Box>
           <Box className="h-full mb-32">

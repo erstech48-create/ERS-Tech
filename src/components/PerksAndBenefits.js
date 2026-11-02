@@ -209,7 +209,7 @@ function PerksAndBenefits() {
                 gutterBottom
                 className="text-center !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] capitalize"
               >
-                Bi Annual National Tours
+                Bi-Annual National Tours
               </Typography>
             </Grid>
             <Grid item xs={6} sm={4} md={4} lg={3}>
@@ -264,7 +264,7 @@ function PerksAndBenefits() {
                 gutterBottom
                 className="text-center !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] capitalize"
               >
-                Weekly Refreshment
+                Weekly Refreshments
               </Typography>
             </Grid>
             <Grid item xs={6} sm={4} md={4} lg={3}>
@@ -282,7 +282,7 @@ function PerksAndBenefits() {
                 gutterBottom
                 className="text-center !text-base !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] capitalize"
               >
-                Work Annivarsary celebrations
+                Work Anniversary Celebrations
               </Typography>
             </Grid>
             <Grid item xs={6} sm={4} md={4} lg={3}>

@@ -13,39 +13,39 @@ function CurrentOpening() {
   let jobs = [
     {
       id: 1,
-      title: "ReactJs developer",
+      title: "React.js Developer",
       experience: "2-3",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
     {
       id: 2,
       title: "SQA Engineer",
       experience: "2-3",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
     {
       id: 3,
-      title: "NodeJs developer",
+      title: "Node.js Developer",
       experience: "2-3",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
     {
       id: 4,
-      title: "Mern Stack Developer",
+      title: "MERN Stack Developer",
       experience: "3-4",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
     {
       id: 5,
       title: "Project Manager",
       experience: "10",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
     {
       id: 6,
-      title: "Teach Lead",
+      title: "Tech Lead",
       experience: "8",
-      location: "lahore, pakistan",
+      location: "Lahore, Pakistan",
     },
   ];
 
@@ -114,7 +114,7 @@ function CurrentOpening() {
                               "color 0.3s ease, border-color 0.3s ease",
                           }}
                         >
-                          apply now
+                          Apply Now
                         </button>
                       </Box>
                     </Box>
@@ -136,7 +136,7 @@ function CurrentOpening() {
                 onClick={() => handleOpenForm('other')}
                 className="!text-base !font-[600] font-poppins text-ersPrimary capitalize !leading-[140%] !tracking-[-0.16px] hover:!text-[#0F53CE]"
               >
-                apply now
+                Apply Now
               </button>
             </Typography>
           </Box>
