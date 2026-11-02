@@ -2,6 +2,8 @@ import React from "react";
 import dynamic from "next/dynamic";
 import Hero from "../../components/Hero";
 import TrustedBy from "../../components/TrustedBy";
+import JourneyScene from "../../components/JourneyScene";
+import StatsStrip from "../../components/StatsStrip";
 import OurServices from "../../components/OurServices";
 import IndustriesWeServe from "../../components/IndustriesWeServe";
 import CoreValues from "../../components/CoreValues";
@@ -42,6 +44,8 @@ function HomePage() {
       <div className="w-full max-w-[1920px] mx-auto">
         <Hero />
         <TrustedBy />
+        <JourneyScene />
+        <StatsStrip />
         <OurServices title={{ titleOne: "Our", titleTwo: "Services" }} page={"home"}/>
         <IndustriesWeServe />
         <Projects title={{ titleOne: "Our Latest", titleTwo: "Projects" }} page={"home"} />

@@ -16,16 +16,20 @@ import BlockchainIcon from "@/../public/assets/images/blockchain-icon.png";
 import UIIcon from "@/../public/assets/images/ui-icon.png";
 import SupportIcon from "@/../public/assets/images/support-icon.png";
 import Image from "next/image";
+import { useLenis } from "@/components/motion/SmoothScroll";
+import { gsap } from "@/lib/gsap";
 
 function Header() {
   const router = useRouter();
   const menuRef = useRef(null);
   const menuOverlayRef = useRef(null);
+  const { lenis, scrollTo } = useLenis();
   let subMenu;
 
   const [menuActive, setMenuActive] = useState(false);
   const [mobileMenuTitle, setMobileMenuTitle] = useState("");
-  const [scroll, setScroll] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
 
   const isCaseStudyPage =
     router.pathname === "/portfolio/[slug]" ||
@@ -33,7 +37,58 @@ function Header() {
       router.asPath.startsWith("/portfolio/") &&
       router.asPath !== "/portfolio");
 
-  const isScrolled = scroll > 50 || isCaseStudyPage;
+  useEffect(() => {
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+    let ticking = false;
+
+    const updateScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrolled = currentScrollY > 50 || isCaseStudyPage;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+
+      if (!menuActive) {
+        if (currentScrollY > 80 && currentScrollY > lastScrollY + 5) {
+          setIsHidden(true);
+        } else if (currentScrollY < lastScrollY - 5 || currentScrollY <= 80) {
+          setIsHidden(false);
+        }
+      } else {
+        setIsHidden(false);
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScroll);
+        ticking = true;
+      }
+    };
+
+    updateScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isCaseStudyPage, menuActive]);
+
+  useEffect(() => {
+    if (menuActive) {
+      lenis?.stop();
+      if (menuRef.current) {
+        const items = menuRef.current.querySelectorAll(".menu-section > li");
+        gsap.fromTo(
+          items,
+          { opacity: 0, x: -16 },
+          { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, ease: "power2.out" }
+        );
+      }
+    } else {
+      lenis?.start();
+    }
+  }, [menuActive, lenis]);
 
   useEffect(() => {
     const menu = menuRef.current;
@@ -108,7 +163,6 @@ function Header() {
     window.addEventListener("resize", handleResize);
 
     return () => {
-      // Cleanup event listeners when the component is unmounted
       if (menuSection) {
         menuSection.removeEventListener("click", handleResize);
       }
@@ -128,21 +182,16 @@ function Header() {
     };
   }, [menuActive]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScroll(window.scrollY);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
   const headerStyle = {
     position: isScrolled ? "sticky" : "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
     backgroundColor: isScrolled ? "#fff" : "transparent",
     color: isScrolled ? "#3E3E3E !important" : "#fff",
-    transition: "all 0.2s ease",
+    transform: isHidden ? "translateY(-100%)" : "translateY(0)",
+    transition: "background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease",
     boxShadow:
       isScrolled
         ? "0 4px 6px -1px rgba(0, 0, 0, 0.1),0 2px 4px -1px rgba(0, 0, 0, 0.06)"
@@ -268,7 +317,16 @@ function Header() {
                   </Link>
                 </li>
                 <li className="menu-item-has-children">
-                  <Link href="/services#contact" className="hire_team">
+                  <Link
+                    href="/services#contact"
+                    className="hire_team"
+                    onClick={(e) => {
+                      if (router.pathname === "/services") {
+                        e.preventDefault();
+                        scrollTo("#contact", { offset: -90 });
+                      }
+                    }}
+                  >
                     Contact Us
                   </Link>
                 </li>

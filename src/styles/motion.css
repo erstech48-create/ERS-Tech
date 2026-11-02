@@ -1,0 +1,231 @@
+/* Motion Foundation Styles */
+
+/* Hidden states apply only when JavaScript motion is enabled */
+html.js-motion .motion-init-hidden {
+  opacity: 0;
+}
+
+/* Word reveal container */
+.word-mask-wrapper {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  line-height: inherit;
+}
+
+.word-mask-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* Hover effects according to plan */
+.card-hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px -6px rgba(41, 188, 241, 0.18), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+}
+
+.pricing-card-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.pricing-card-hover:hover {
+  transform: translateY(-8px);
+  border-color: #26AFED !important;
+  box-shadow: 0 14px 30px -4px rgba(38, 175, 237, 0.22);
+}
+
+/* Arrow nudge helper */
+.arrow-nudge {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*:hover > .arrow-nudge,
+*:hover .arrow-nudge-target {
+  transform: translateX(4px);
+}
+
+/* Skeleton shimmer for blog cards */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e2e8f0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Nav link hover underline slide */
+.menu-section > li > a {
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+.menu-section > li > a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #26AFED;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-section > li > a:hover::after {
+  width: 100%;
+}
+
+.menu-section > li > a.hire_team::after {
+  display: none !important;
+}
+
+/* Marquee hover pause */
+.slider:hover .slide-track,
+.slider-left:hover .slide-track-left {
+  animation-play-state: paused !important;
+}
+
+/* FAQ Smooth Grid Accordion */
+.faq-answer-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  opacity: 0;
+}
+
+.faq-item.open .faq-answer-wrapper {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.faq-answer-inner {
+  overflow: hidden;
+}
+
+.faq-toggle-icon {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+}
+
+.faq-item.open .faq-toggle-icon {
+  transform: rotate(90deg);
+}
+
+/* Portfolio Card Hover */
+.portfolio-container {
+  overflow: hidden;
+}
+
+.portfolio-container img.portfolio-image {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.portfolio-container:hover img.portfolio-image {
+  transform: scale(1.05) !important;
+}
+
+/* Current Openings Card & Modal Motion */
+.job-card-box {
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.job-card-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px -5px rgba(41, 188, 241, 0.2);
+}
+
+.job-card-box .job-accent-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #26AFED, #115BD0);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0 0 10px 10px;
+}
+
+.job-card-box:hover .job-accent-line {
+  transform: scaleX(1);
+}
+
+.job-card-box:hover .location-dot-icon {
+  animation: bounceDot 0.5s ease infinite alternate;
+}
+
+@keyframes bounceDot {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
+}
+
+/* Modal Content Slide-Up */
+.modal-content-slide-up {
+  animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalSlideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Perks and Benefits Icon Hover */
+.perks-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+}
+
+.perks-hover:hover {
+  transform: translateY(-6px) rotate(6deg) !important;
+  box-shadow: 0 14px 28px -4px rgba(41, 188, 241, 0.35) !important;
+}
+
+/* Blog Card Hover */
+.blog-card-img-wrap {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.blog-card-img-wrap img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.group:hover .blog-card-img-wrap img {
+  transform: scale(1.05) !important;
+}
+
+.group:hover .arrow-read-more {
+  transform: translateX(4px);
+  transition: transform 0.25s ease;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  html.js-motion .motion-init-hidden {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
+}

@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Grid } from "@mui/material";
 import Image from "next/image";
 import defaultStackData from "../../public/stackdata.json";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import SplitHeading from "@/components/motion/SplitHeading";
+import SlidingUnderlineTabs from "@/components/motion/SlidingUnderlineTabs";
 
 const TABS = [
   { key: "web-dev", label: "Web Development" },
@@ -11,7 +14,6 @@ const TABS = [
   { key: "technical-support", label: "Technical Support" },
 ];
 
-// Pre-group stack items by category for instant 0ms switching
 const PREPARED_STACKS = defaultStackData.reduce((acc, item) => {
   if (item.category && item.imageUrl) {
     const cat = item.category.toLowerCase();
@@ -26,14 +28,12 @@ function OurStack({ initialStack = null, allStacks = null }) {
   const [selected, setSelected] = useState("web-dev");
   const [activeCategory, setActiveCategory] = useState("web-dev");
   const [isFading, setIsFading] = useState(false);
+  const gridContainerRef = useRef(null);
 
   const handleTabChange = (category) => {
     if (category === selected) return;
-    // 1. Immediately highlight the clicked tab (zero lag)
     setSelected(category);
-    // 2. Smooth fade-out of current icons
     setIsFading(true);
-    // 3. Switch icons after short fade and smoothly fade in
     setTimeout(() => {
       setActiveCategory(category);
       setIsFading(false);
@@ -48,8 +48,37 @@ function OurStack({ initialStack = null, allStacks = null }) {
   const firstRow = currentUrls.slice(0, 5);
   const secondRow = currentUrls.slice(5);
 
+  // Stagger in logos on mount and when activeCategory changes
+  useEffect(() => {
+    if (prefersReducedMotion() || !gridContainerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const items = gridContainerRef.current.querySelectorAll(".stack-logo-item");
+      if (items.length) {
+        gsap.fromTo(
+          items,
+          { opacity: 0, scale: 0.85 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            stagger: 0.04,
+            ease: "back.out(1.5)",
+            scrollTrigger: {
+              trigger: gridContainerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, gridContainerRef);
+
+    return () => ctx.revert();
+  }, [activeCategory]);
+
   return (
-    <Box className="mb-[5rem]">
+    <Box className="mb-[5rem] overflow-hidden">
       <Box className="block text-center m-auto mb-8">
         <Typography
           className="capitalize !text-3xl !font-[600] text-center font-poppins"
@@ -57,33 +86,24 @@ function OurStack({ initialStack = null, allStacks = null }) {
           component={"h2"}
           gutterBottom
         >
-          Our&nbsp;
-          <span className="text-ersPrimary">Stacks</span>
+          <SplitHeading as="span">Our </SplitHeading>
+          <span className="text-ersPrimary">
+            <SplitHeading as="span">Stacks</SplitHeading>
+          </span>
         </Typography>
       </Box>
 
       <Box className="w-[80%] max-w-[100%] m-auto">
-        {/* Tabs Bar with smooth transition */}
-        <Box className="flex items-center justify-center flex-wrap mb-14 xl:gap-12 lg:gap-8 md:gap-4 sm:gap-4 xsm:gap-4 xxs:gap-4 xxxs:gap-4">
-          {TABS.map((tab) => {
-            const isActive = selected === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => handleTabChange(tab.key)}
-                className={`!capitalize !text-[18px] !font-[600] font-poppins !leading-[140%] !tracking-[-0.16px] !text-black block border-active hover:!text-ersPrimary transition-colors duration-200 cursor-pointer ${
-                  isActive ? "border-actived !text-ersPrimary" : ""
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </Box>
+        {/* Animated Sliding Underline Tabs */}
+        <SlidingUnderlineTabs
+          tabs={TABS}
+          activeKey={selected}
+          onChange={handleTabChange}
+          className="mb-12"
+        />
 
         {/* Stable container with min-height and smooth fade transition */}
-        <div className="min-h-[260px] flex flex-col justify-center">
+        <div ref={gridContainerRef} className="min-h-[260px] flex flex-col justify-center">
           <div
             className={`transition-all duration-300 ease-in-out ${
               isFading
@@ -100,9 +120,9 @@ function OurStack({ initialStack = null, allStacks = null }) {
                   sm={6}
                   md={2.4}
                   lg={2.4}
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center stack-logo-item"
                 >
-                  <div className="flex items-center justify-center transition-transform duration-200 hover:scale-105">
+                  <div className="flex items-center justify-center transition-transform duration-200 hover:-translate-y-1 cursor-pointer">
                     <Image
                       src={url}
                       width={120}
@@ -124,9 +144,9 @@ function OurStack({ initialStack = null, allStacks = null }) {
                       sm={6}
                       md={2}
                       lg={2}
-                      className="flex items-center justify-center"
+                      className="flex items-center justify-center stack-logo-item"
                     >
-                      <div className="flex items-center justify-center transition-transform duration-200 hover:scale-105">
+                      <div className="flex items-center justify-center transition-transform duration-200 hover:-translate-y-1 cursor-pointer">
                         <Image
                           src={url}
                           width={120}

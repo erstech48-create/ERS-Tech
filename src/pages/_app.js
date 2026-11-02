@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
+import "@/styles/motion.css";
 import AppLayout from "../corelayout/AppLayout/index";
+import SmoothScroll from "@/components/motion/SmoothScroll";
 import { Provider } from "react-redux";
 import store from "../redux/store";
 import dynamic from "next/dynamic";
@@ -52,15 +54,17 @@ export default function App({ Component, pageProps }) {
       `}</style>
       <div className={`${poppins.className} ${poppins.variable}`}>
         <Provider store={store}>
-          <AppLayout>
-            <Component {...pageProps} />
-            <ToastContainer
-              position="top-center"
-              theme="light"
-              hideProgressBar={true}
-              pauseOnHover
-            />
-          </AppLayout>
+          <SmoothScroll>
+            <AppLayout>
+              <Component {...pageProps} />
+              <ToastContainer
+                position="top-center"
+                theme="light"
+                hideProgressBar={true}
+                pauseOnHover
+              />
+            </AppLayout>
+          </SmoothScroll>
         </Provider>
       </div>
     </>
