@@ -50,18 +50,18 @@ const faqSchema = {
     },
     {
       "@type": "Question",
-      name: "What types of technologies does ERS support?",
+      name: "What types of technologies does ERS TECH support?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "ERS caters for the following technologies: PHP/Laravel, Blockchain, JavaScript, Node Js, iOS & Android, ReactJS, React-Native.",
+        text: "ERS TECH caters for the following technologies: PHP / Laravel, Blockchain, JavaScript, Node.js, iOS & Android, React.js, and React Native.",
       },
     },
     {
       "@type": "Question",
-      name: "What are the major products developed by ERS?",
+      name: "What are the major products developed by ERS TECH?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "ERS has developed a diverse number of products: Quikipay, CardHolder, FocusMonk, Salharo, LiftSplit, Wise1ne, Mukaf.",
+        text: "ERS TECH has developed a diverse number of products: Quikipay, CardHolder, FocusMonk, Salharo, LiftSplit, Wise1HRM, and Mukaf.",
       },
     },
     {
@@ -77,7 +77,7 @@ const faqSchema = {
       name: "How do you manage communication with clients?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Hire an expert team of developers through ERS Tech; our resources can accommodate themselves according to the client's time zone. We rely on modern communication gateways like Slack, Jira, Skype, etc.",
+        text: "Our dedicated development teams align seamlessly with your time zone and manage daily communication through modern collaboration tools such as Slack, Jira, Microsoft Teams, and Zoom.",
       },
     },
   ],

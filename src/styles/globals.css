@@ -2535,3 +2535,45 @@ button {
 .services-shadow:hover {
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
+
+/* Fluid responsive scaling for in-between laptop screens (1024px to 1440px) so hero text never collides with visual card */
+@media screen and (min-width: 1024px) {
+  .hero-component-multi {
+    top: 155px !important;
+    transform: none !important;
+    max-width: 60% !important;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .hero-component-multi {
+    top: 155px !important;
+    transform: none !important;
+    max-width: 61% !important;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  .hero-component-multi {
+    top: 155px !important;
+    transform: none !important;
+    max-width: 62% !important;
+  }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1439px) {
+  .career-hero-heading {
+    font-size: calc(2.35rem + (3.3 - 2.35) * ((100vw - 1024px) / (1440 - 1024))) !important;
+    line-height: 120% !important;
+  }
+  .career-visual-card {
+    width: calc(340px + (420 - 340) * ((100vw - 1024px) / (1440 - 1024))) !important;
+    height: calc(330px + (400 - 330) * ((100vw - 1024px) / (1440 - 1024))) !important;
+    right: 1.5% !important;
+  }
+  .career-visual-border {
+    width: calc(310px + (380 - 310) * ((100vw - 1024px) / (1440 - 1024))) !important;
+    height: calc(330px + (400 - 330) * ((100vw - 1024px) / (1440 - 1024))) !important;
+    right: 0% !important;
+  }
+}

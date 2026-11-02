@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Divider, Typography, Button } from "@mui/material";
+import Link from "next/link";
 import ROneImg from "@/../public/assets/images/hero-graphic.webp";
 import RTwoImg from "@/../public/assets/images/hero-graphic-two.webp";
 import Image from "next/image";
@@ -30,18 +31,22 @@ function Hero() {
                   Transform Your Ideas Into
                 </span>
                 <span className="block !text-white xxl:!text-[4.2rem] xl:!text-[2.85rem] lg:!text-[2.35rem] md:!text-4xl sm:!text-3xl xsm:!text-3xl xxs:!text-2xl xxxs:!text-2xl !font-[600] !leading-[120%] !tracking-[-0.16px] uppercase font-poppins">
-                  Intelligent solutions
+                  Intelligent Solutions
                 </span>
               </Typography>
               <Typography
                 variant="overline"
                 className="font-poppins text-white xxl:!text-xl xl:!text-base lg:!text-sm !font-[400] leading-[140%] tracking-[-0.16px]"
               >
-                YOUR VISION , OUR CODE!!!!
+                YOUR VISION, OUR CODE.
               </Typography>
             </Box>
-            <Button className="font-poppins shadow-xl !normal-case !w-[160px] !rounded-[50px] !bg-white !text-base !py-2 !px-4 font-medium !leading-[140%] !text-[#3CB7EE] !absolute xxl:top-[70%] xl:top-[74%] lg:top-[76%] top-[78%] left-[1%] hover:!bg-[#29bcf1] hover:!text-[#fff]">
-              View our work
+            <Button
+              component={Link}
+              href="/portfolio"
+              className="font-poppins shadow-xl !normal-case !w-[160px] !rounded-[50px] !bg-white !text-base !py-2 !px-4 font-medium !leading-[140%] !text-[#3CB7EE] !absolute xxl:top-[70%] xl:top-[74%] lg:top-[76%] top-[78%] left-[1%] hover:!bg-[#29bcf1] hover:!text-[#fff]"
+            >
+              View Our Work
             </Button>
             <Box className="right-side-visual xl:block lg:block md:block sm:hidden xsm:hidden xxs:hidden xxxs:hidden">
               <Box className="xxl:h-[350px] xxl:w-[350px] xl:h-[265px] xl:w-[265px] lg:h-[240px] lg:w-[240px] md:h-[200px] md:w-[200px] bg-white border-[3px] border-[rgba(41,188,241,0.6)] rounded-[10px] right-one-visual flex justify-center items-center z-[1]">

@@ -41,7 +41,7 @@ function index({ initialStack = null, allStacks = null }) {
         <OurStack initialStack={initialStack} allStacks={allStacks} />
         <div className="mb-20">
           <Projects
-            title={{ titleOne: "featured", titleTwo: "Projects" }}
+            title={{ titleOne: "Featured", titleTwo: "Projects" }}
             page={"Services"}
           />
         </div>

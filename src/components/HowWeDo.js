@@ -20,7 +20,7 @@ function HowWeDo() {
             component={"h2"}
             gutterBottom
           >
-            How We <span className="text-ersPrimary">Do</span>
+            How We <span className="text-ersPrimary">Work</span>
           </Typography>
         </Box>
         <Box className="w-[90%] max-w-[100%] mx-auto mt-5 pt-5 relative how-we-do-box">
@@ -91,37 +91,37 @@ function HowWeDo() {
           <List className="flex items-center relative w-full !mt-[0.9rem] !gap-[1px] relative">
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" component="h3" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              Meeting
+              Discovery
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              design
+              Design
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              develop
+              Develop
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              test
+              Test
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              review
+              Review
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>
             <ListItem className="!justify-center !grid">
               <Typography variant="h6" display={"block"} className={isIphone () ? "!text-sm !font-[400] font-poppins !leading-[140%] !uppercase"    :  "!text-lg !font-[400] font-poppins !leading-[140%] !uppercase"}>
-              live
+              Launch
               </Typography>
               <span className="gradient-b-border"></span>
             </ListItem>

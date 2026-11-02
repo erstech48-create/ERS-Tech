@@ -68,7 +68,7 @@ function Footer() {
                     gutterBottom
                     className="!text-base !font-[600] font-poppins leading-[140%] tracking-[-0.16px] !pb-1"
                   >
-                    Interested To Work With Us
+                    Interested in Working With Us?
                   </Typography>
                   <Box>
                     <form className="subscription-form" onSubmit={handleWorkWithUsSubmit}>
@@ -131,9 +131,9 @@ function Footer() {
                     <ListItem className="!pl-0 !py-2">
                       <Link
                         href="/about-us"
-                        className="!text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] capitalize text-white hover:text-ersPrimary"
+                        className="!text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] text-white hover:text-ersPrimary"
                       >
-                        about us
+                        About Us
                       </Link>
                     </ListItem>
                     <ListItem className="!pl-0 !py-2">
@@ -203,7 +203,7 @@ function Footer() {
                         href="/services"
                         className="text-white !text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] capitalize hover:text-ersPrimary"
                       >
-                        UI/UX Development
+                        UI/UX Design
                       </Link>
                     </ListItem>
                   </List>
@@ -372,7 +372,7 @@ function Footer() {
               component={"p"}
               className="!text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] text-center text-white"
             >
-              &copy;2024 ERSTECH - All rights reserved.
+              &copy; {new Date().getFullYear()} ERS TECH. All rights reserved.
             </Typography>
           </Box>
         </Box>

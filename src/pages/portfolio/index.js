@@ -22,7 +22,7 @@ function index({ initialProjects = [] }) {
         <Careerhero
           btnText={"Portfolio"}
           Mainheading={
-            "A Showcase of Innovative <br /> Solutions and Successful <br /> projects"
+            "A Showcase of <br /> Innovative Solutions <br /> and Successful Projects"
           }
           subHeading={
             "Dive into our portfolio to explore the wide array of projects. We transform complex ideas into intuitive, high-performance solutions that not only meet but exceed client expectations."
