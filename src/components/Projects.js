@@ -12,7 +12,7 @@ import Wise1HRM from "@/../public/assets/projects/wise1hrm.webp";
 import ABot from "@/../public/assets/projects/a-bot.webp";
 import Link from "next/link";
 import Image from "next/image";
-import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import Reveal from "@/components/motion/Reveal";
 
 function Projects({ title }) {
@@ -53,60 +53,18 @@ function Projects({ title }) {
   useEffect(() => {
     if (prefersReducedMotion() || !rootRef.current) return;
 
-    const ctx = gsap.context(() => {
-      // Slides stagger on enter
-      const slides = rootRef.current.querySelectorAll(".swiper-slide");
-      if (slides.length) {
-        gsap.fromTo(
-          slides,
-          { opacity: 0, x: 60 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.8,
-            stagger: 0.1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: rootRef.current,
-              start: "top 80%",
-              once: true,
-            },
-          }
-        );
-      }
+    // Autoplay only while in viewport to save CPU / frame rate
+    const st = ScrollTrigger.create({
+      trigger: rootRef.current,
+      start: "top bottom",
+      end: "bottom top",
+      onEnter: () => swiperRef.current?.swiper?.autoplay?.start(),
+      onLeave: () => swiperRef.current?.swiper?.autoplay?.stop(),
+      onEnterBack: () => swiperRef.current?.swiper?.autoplay?.start(),
+      onLeaveBack: () => swiperRef.current?.swiper?.autoplay?.stop(),
+    });
 
-      // Inner image parallax scale 1.12 -> 1 scrub
-      const images = rootRef.current.querySelectorAll(".img-style");
-      if (images.length) {
-        gsap.fromTo(
-          images,
-          { scale: 1.12 },
-          {
-            scale: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: rootRef.current,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 0.8,
-            },
-          }
-        );
-      }
-
-      // Autoplay only while in viewport
-      ScrollTrigger.create({
-        trigger: rootRef.current,
-        start: "top bottom",
-        end: "bottom top",
-        onEnter: () => swiperRef.current?.swiper?.autoplay?.start(),
-        onLeave: () => swiperRef.current?.swiper?.autoplay?.stop(),
-        onEnterBack: () => swiperRef.current?.swiper?.autoplay?.start(),
-        onLeaveBack: () => swiperRef.current?.swiper?.autoplay?.stop(),
-      });
-    }, rootRef);
-
-    return () => ctx.revert();
+    return () => st.kill();
   }, []);
 
   return (
@@ -154,7 +112,7 @@ function Projects({ title }) {
               }}
               loop={true}
               modules={[Navigation, Autoplay]}
-              speed={1500}
+              speed={2000}
               autoplay={{
                 delay: 2500,
                 disableOnInteraction: false,
@@ -162,7 +120,7 @@ function Projects({ title }) {
               }}
               spaceBetween={60}
               slidesPerView={3}
-              onInit={(swiper) => {
+              onInit={() => {
                 const nextButton = document.querySelector(
                   ".swiper-button-next"
                 );
@@ -175,21 +133,42 @@ function Projects({ title }) {
                 }
               }}
               breakpoints={{
-                320: { slidesPerView: 1, spaceBetween: 40 },
-                375: { slidesPerView: 1, spaceBetween: 40 },
-                425: { slidesPerView: 1, spaceBetween: 40 },
-                768: { slidesPerView: 1.5, spaceBetween: 40 },
-                1024: { slidesPerView: 2, spaceBetween: 30 },
-                1200: { slidesPerView: 3, spaceBetween: 40 },
-                1440: { slidesPerView: 3, spaceBetween: 60 },
+                320: {
+                  slidesPerView: 1,
+                  spaceBetween: 40,
+                },
+                375: {
+                  slidesPerView: 1,
+                  spaceBetween: 40,
+                },
+                425: {
+                  slidesPerView: 1,
+                  spaceBetween: 40,
+                },
+                768: {
+                  slidesPerView: 1.5,
+                  spaceBetween: 40,
+                },
+                1024: {
+                  slidesPerView: 2,
+                  spaceBetween: 30,
+                },
+                1200: {
+                  slidesPerView: 3,
+                  spaceBetween: 40,
+                },
+                1440: {
+                  slidesPerView: 3,
+                  spaceBetween: 60,
+                },
               }}
             >
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={Aconomy}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="Aconomy project preview"
                     />
                   </Box>
@@ -197,7 +176,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -233,11 +212,11 @@ function Projects({ title }) {
               </SwiperSlide>
 
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={BCCOIN}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="BlackCardCoin project preview"
                     />
                   </Box>
@@ -245,7 +224,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -258,12 +237,12 @@ function Projects({ title }) {
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
                     A crypto-based platform enabling users to buy BCCOIN for staking
-                    rewards and exclusive access to a personal crypto card.
+                    and participate in global crypto initiatives.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://blackcardcoin.com"
+                      href="https://blackcardcoin.com/"
                       target="_blank"
                     >
                       View Project
@@ -280,11 +259,11 @@ function Projects({ title }) {
               </SwiperSlide>
 
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={Focusmonk}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="FocusMonk project preview"
                     />
                   </Box>
@@ -292,7 +271,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -304,13 +283,13 @@ function Projects({ title }) {
                     gutterBottom
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
-                    An AI-driven solution to enhance focus and productivity with
-                    performance-based rewards.
+                    An intuitive productivity app designed to help users block
+                    distractions and stay focused on tasks.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://www.focusmonk.co"
+                      href="https://focusmonk.io"
                       target="_blank"
                     >
                       View Project
@@ -327,11 +306,11 @@ function Projects({ title }) {
               </SwiperSlide>
 
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={Salharo}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="Salharo project preview"
                     />
                   </Box>
@@ -339,7 +318,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -351,13 +330,13 @@ function Projects({ title }) {
                     gutterBottom
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
-                    A USA-based e-commerce platform supporting payments via
-                    Stripe and PayPal.
+                    An eCommerce platform offering sustainable fashion, focusing
+                    on ethical production and zero-waste designs.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://salharo.us"
+                      href="https://salharo.com/"
                       target="_blank"
                     >
                       View Project
@@ -374,11 +353,11 @@ function Projects({ title }) {
               </SwiperSlide>
 
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={Wise1HRM}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="Wise1HRM project preview"
                     />
                   </Box>
@@ -386,7 +365,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component={"h6"}
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -421,11 +400,11 @@ function Projects({ title }) {
               </SwiperSlide>
 
               <SwiperSlide>
-                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background overflow-hidden">
-                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg overflow-hidden">
+                <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
+                  <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
                       src={ABot}
-                      className="object-cover img-style w-full h-full transition-transform duration-300"
+                      className="object-cover img-style"
                       alt="A-Bot AI Telegram Crypto Bot"
                     />
                   </Box>
@@ -433,7 +412,7 @@ function Projects({ title }) {
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component={"h6"}
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
