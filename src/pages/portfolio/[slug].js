@@ -419,8 +419,24 @@ export default function CaseStudyPage({ study }) {
               )}
             </div>
 
-            {/* Hero Main Mockup Image */}
-            {isValidImage(hero?.image) && (
+            {/* Hero Main Mockup (Video or Image) */}
+            {hero?.video?.src ? (
+              <div
+                ref={heroImageRef}
+                className="mt-12 rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xl bg-black will-change-transform relative"
+              >
+                <video
+                  src={hero.video.src}
+                  poster={hero.video.poster || hero.image?.src}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                  className="w-full h-auto block rounded-2xl"
+                />
+              </div>
+            ) : isValidImage(hero?.image) ? (
               <div
                 ref={heroImageRef}
                 className="mt-12 rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xl bg-white will-change-transform"
@@ -435,7 +451,7 @@ export default function CaseStudyPage({ study }) {
                   className="w-full h-auto object-contain"
                 />
               </div>
-            )}
+            ) : null}
           </section>
         </div>
 
