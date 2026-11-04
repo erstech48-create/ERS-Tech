@@ -255,7 +255,7 @@ function Footer() {
                           primary={
                             <a
                               href="mailto:info@erstech.org"
-                              className="text-white !text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] capitalize hover:text-ersPrimary"
+                              className="text-white !text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] hover:text-ersPrimary"
                             >
                               Email: info@erstech.org
                             </a>

@@ -291,8 +291,6 @@ export default function HeroScene() {
   const ref = useRef(null);
   const cv = useRef(null);
   const textWrap = useRef(null);
-  const hintRef = useRef(null);
-  const wheelRef = useRef(null);
 
   useScene(ref, {
     name: "hero",
@@ -329,12 +327,6 @@ export default function HeroScene() {
             opacity: out,
             transform: `translateY(${-(1 - out) * 90}px)`,
           });
-        }
-        if (hintRef.current) {
-          rv(hintRef.current, 1 - seg(p, 0.02, 0.08), 0);
-        }
-        if (wheelRef.current) {
-          css(wheelRef.current, { transform: `translateY(${((t * 1.2) % 1) * 12}px)` });
         }
       } else {
         const small = w < 600;
@@ -383,12 +375,6 @@ export default function HeroScene() {
             <Link href="#contact" className="hs-btn hs-btn-ghost">Talk to Sales</Link>
           </div>
         </div>
-      </div>
-      <div ref={hintRef} className="hs-scroll-hint" aria-hidden="true">
-        <div className="hs-mouse">
-          <i ref={wheelRef} />
-        </div>
-        SCROLL
       </div>
     </section>
   );
