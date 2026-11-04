@@ -16,6 +16,7 @@
 }
 
 :root {
+  --nav-h: 70px;
   --gradient: #29bcf1;
   --primary-text: #3cb7ee;
 }

@@ -84,7 +84,7 @@ function Hero() {
             y: 0,
             duration: 0.7,
             ease: "power3.out",
-            delay: 0.45,
+            delay: 0.35,
           }
         );
       }
@@ -100,7 +100,7 @@ function Hero() {
             x: 0,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.3,
+            delay: 0.25,
             onComplete: () => {
               const floatTween = gsap.to(card, {
                 y: "+=6",
@@ -310,8 +310,6 @@ function Hero() {
                     src={aboutOneImg}
                     className="w-[95%] object-cover"
                     priority
-                    unoptimized
-                    placeholder="blur"
                     alt="About ERS TECH software engineering team"
                   />
                   <Box className="h-[95px] xl:h-[90px] lg:h-[80px] w-[90%] mx-auto bg-white border-[3px] border-[rgba(41,188,241,0.6)] rounded-[14px] absolute -bottom-[10%] right-[5%] z-[1]">

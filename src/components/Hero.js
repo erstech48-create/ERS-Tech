@@ -64,7 +64,7 @@ function Hero() {
           duration: 0.7,
           stagger: 0.12,
           ease: "power3.out",
-          delay: 0.4,
+          delay: 0.3,
         }
       );
 
@@ -83,7 +83,7 @@ function Hero() {
             yPercent: -50,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.3,
+            delay: 0.25,
           }
         );
       }
@@ -99,7 +99,7 @@ function Hero() {
             yPercent: -50,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.45,
+            delay: 0.4,
           }
         );
       }
@@ -115,12 +115,12 @@ function Hero() {
             yPercent: -50,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.5,
+            delay: 0.45,
           }
         );
       }
 
-      // 6) Idle float on the inner image elements (isolated from card coordinate positioning)
+      // 6) Idle float on the inner image elements
       const imgOne = rOne?.querySelector("img");
       const imgTwo = rTwo?.querySelector("img");
       if (imgOne && imgTwo) {
@@ -130,7 +130,6 @@ function Hero() {
           ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
-          delay: 1.1,
         });
         const floatTwo = gsap.to(imgTwo, {
           y: 6,
@@ -138,7 +137,6 @@ function Hero() {
           ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
-          delay: 1.2,
         });
 
         ScrollTrigger.create({
@@ -257,7 +255,7 @@ function Hero() {
                 </span>
                 <span
                   ref={mainLineRef}
-                  className="hero-mainline block !text-white xxl:!text-[4.2rem] xl:!text-[2.85rem] lg:!text-[2.35rem] md:!text-4xl sm:!text-3xl xsm:!text-3xl xxs:!text-2xl xxxs:!text-2xl !font-[600] !leading-[120%] !tracking-[-0.16px] uppercase font-poppins"
+                  className="hero-mainline block !text-white xxxl:!text-[4.2rem] xxl:!text-[3.35rem] xl:!text-[2.85rem] lg:!text-[2.35rem] md:!text-4xl sm:!text-3xl xsm:!text-3xl xxs:!text-2xl xxxs:!text-2xl !font-[600] !leading-[115%] !tracking-[-0.16px] uppercase font-poppins"
                 >
                   Intelligent Solutions
                 </span>
@@ -272,7 +270,7 @@ function Hero() {
             <Button
               component={Link}
               href="/portfolio"
-              className="hero-action-btn font-poppins shadow-xl !normal-case !w-[160px] !rounded-[50px] !bg-white !text-base !py-2 !px-4 font-medium !leading-[140%] !text-[#3CB7EE] !absolute xxl:top-[70%] xl:top-[74%] lg:top-[76%] top-[78%] left-[1%] hover:!bg-[#29bcf1] hover:!text-[#fff]"
+              className="hero-action-btn font-poppins shadow-xl !normal-case !w-[160px] !rounded-[50px] !bg-white !text-base !py-2 !px-4 font-medium !leading-[140%] !text-[#3CB7EE] !absolute xxl:top-[72%] xl:top-[74%] lg:top-[76%] top-[78%] left-[1%] hover:!bg-[#29bcf1] hover:!text-[#fff]"
             >
               View Our Work
             </Button>
@@ -282,8 +280,6 @@ function Hero() {
                   src={ROneImg}
                   className="w-[80%] object-cover transition-transform"
                   priority
-                  unoptimized
-                  placeholder="blur"
                   alt="Software development showcase graphic"
                 />
               </Box>
@@ -292,8 +288,6 @@ function Hero() {
                   src={RTwoImg}
                   className="w-[70%] object-cover transition-transform"
                   priority
-                  unoptimized
-                  placeholder="blur"
                   alt="Fintech dashboard illustration"
                 />
               </Box>

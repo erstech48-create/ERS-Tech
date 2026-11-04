@@ -170,6 +170,9 @@ function Projects({ title }) {
                       src={Aconomy}
                       className="object-cover img-style"
                       alt="Aconomy project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
@@ -218,6 +221,9 @@ function Projects({ title }) {
                       src={BCCOIN}
                       className="object-cover img-style"
                       alt="BlackCardCoin project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
@@ -265,6 +271,9 @@ function Projects({ title }) {
                       src={Focusmonk}
                       className="object-cover img-style"
                       alt="FocusMonk project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
@@ -312,6 +321,9 @@ function Projects({ title }) {
                       src={Salharo}
                       className="object-cover img-style"
                       alt="Salharo project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
@@ -359,6 +371,9 @@ function Projects({ title }) {
                       src={Wise1HRM}
                       className="object-cover img-style"
                       alt="Wise1HRM project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
@@ -406,6 +421,9 @@ function Projects({ title }) {
                       src={ABot}
                       className="object-cover img-style"
                       alt="A-Bot AI Telegram Crypto Bot"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>

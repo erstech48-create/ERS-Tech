@@ -72,7 +72,7 @@ function Careerhero({
             duration: 0.7,
             stagger: 0.12,
             ease: "power3.out",
-            delay: 0.5,
+            delay: 0.35,
           }
         );
       }
@@ -88,7 +88,7 @@ function Careerhero({
             x: 0,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.3,
+            delay: 0.25,
             onComplete: () => {
               const floatTween = gsap.to(card, {
                 y: "+=6",
@@ -123,7 +123,7 @@ function Careerhero({
             scale: 1,
             duration: 0.8,
             ease: "power3.out",
-            delay: 0.5,
+            delay: 0.45,
           }
         );
       }
@@ -212,12 +212,6 @@ function Careerhero({
                     width ? `w-${width} object-cover` : "w-[80%] object-cover"
                   }
                   priority
-                  unoptimized
-                  placeholder={
-                    typeof img === "object" && img?.blurDataURL
-                      ? "blur"
-                      : "empty"
-                  }
                   alt={
                     btnText
                       ? `${btnText} banner illustration`

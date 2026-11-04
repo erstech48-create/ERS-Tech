@@ -22,41 +22,46 @@ import { gsap } from "@/lib/gsap";
 function Header() {
   const router = useRouter();
   const menuRef = useRef(null);
+  const headerRef = useRef(null);
   const menuOverlayRef = useRef(null);
   const { lenis, scrollTo } = useLenis();
   let subMenu;
 
   const [menuActive, setMenuActive] = useState(false);
   const [mobileMenuTitle, setMobileMenuTitle] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-
   const isCaseStudyPage =
     router.pathname === "/portfolio/[slug]" ||
     (Boolean(router.asPath) &&
       router.asPath.startsWith("/portfolio/") &&
       router.asPath !== "/portfolio");
+  const [isScrolled, setIsScrolled] = useState(isCaseStudyPage);
+
+  const showWhiteNav = isScrolled || isCaseStudyPage;
+
+  // Keep --nav-h in sync with the real navbar height
+  useEffect(() => {
+    if (!headerRef.current) return;
+    const updateNavH = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight;
+        if (height > 0) {
+          document.documentElement.style.setProperty("--nav-h", `${height}px`);
+        }
+      }
+    };
+    updateNavH();
+    const ro = new ResizeObserver(updateNavH);
+    ro.observe(headerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
-    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
     let ticking = false;
 
     const updateScroll = () => {
       const currentScrollY = window.scrollY;
-      const scrolled = currentScrollY > 50 || isCaseStudyPage;
+      const scrolled = currentScrollY > 20 || isCaseStudyPage;
       setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
-
-      if (!menuActive) {
-        if (currentScrollY > 80 && currentScrollY > lastScrollY + 5) {
-          setIsHidden(true);
-        } else if (currentScrollY < lastScrollY - 5 || currentScrollY <= 80) {
-          setIsHidden(false);
-        }
-      } else {
-        setIsHidden(false);
-      }
-
-      lastScrollY = currentScrollY;
       ticking = false;
     };
 
@@ -72,7 +77,7 @@ function Header() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [isCaseStudyPage, menuActive]);
+  }, [isCaseStudyPage]);
 
   useEffect(() => {
     if (menuActive) {
@@ -183,29 +188,29 @@ function Header() {
   }, [menuActive]);
 
   const headerStyle = {
-    position: isScrolled ? "sticky" : "absolute",
+    position: "fixed",
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 100,
-    backgroundColor: isScrolled ? "#fff" : "transparent",
-    color: isScrolled ? "#3E3E3E !important" : "#fff",
-    transform: isHidden ? "translateY(-100%)" : "translateY(0)",
-    transition: "background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease",
+    zIndex: 1000,
+    backgroundColor: showWhiteNav ? "#fff" : "transparent",
+    color: showWhiteNav ? "#3E3E3E !important" : "#fff",
+    transform: "translateY(0)",
+    transition: "background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease",
     boxShadow:
-      isScrolled
+      showWhiteNav
         ? "0 4px 6px -1px rgba(0, 0, 0, 0.1),0 2px 4px -1px rgba(0, 0, 0, 0.06)"
         : undefined,
   };
 
   return (
-    <header className="header" style={headerStyle}>
+    <header ref={headerRef} className="header" style={headerStyle}>
       <div className="px-lg-cus container mx-auto">
         <div className="wrapper-new-menu">
           <div className="logo-btn header-item-left">
             <Link href="/">
               <Image
-                src={isScrolled ? CLogo : Logo}
+                src={showWhiteNav ? CLogo : Logo}
                 alt="ERS TECH Logo"
                 width={125}
                 height={125}
@@ -230,7 +235,7 @@ function Header() {
                 <li className="menu-item-has-children">
                   <Link
                     href="/"
-                    className={isScrolled ? "!text-[#3E3E3E]" : "text-white"}
+                    className={showWhiteNav ? "!text-[#3E3E3E]" : "text-white"}
                   >
                     Home
                   </Link>
@@ -240,7 +245,7 @@ function Header() {
                   <Link
                     href="/about-us"
                     onClick={(e) => e.preventDefault()}
-                    className={isScrolled ? "!text-[#3E3E3E]" : "text-white"}
+                    className={showWhiteNav ? "!text-[#3E3E3E]" : "text-white"}
                   >
                     Company <i className="ion ion-ios-arrow-down"></i>
                   </Link>
@@ -303,7 +308,7 @@ function Header() {
                 <li className="menu-item-has-children">
                   <Link
                     href="/services"
-                    className={isScrolled ? "!text-[#3E3E3E]" : "text-white"}
+                    className={showWhiteNav ? "!text-[#3E3E3E]" : "text-white"}
                   >
                     Services <i className="ion ion-ios-arrow-down"></i>
                   </Link>
@@ -311,7 +316,7 @@ function Header() {
                 <li className="menu-item-has-children">
                   <Link
                     href="/pricing"
-                    className={isScrolled ? "!text-[#3E3E3E]" : "text-white"}
+                    className={showWhiteNav ? "!text-[#3E3E3E]" : "text-white"}
                   >
                     Pricing
                   </Link>

@@ -33,7 +33,7 @@ const clientLogos = [
 function TrustedBy() {
   return (
     <>
-      <Box className="mb-12 lg:mb-16 relative overflow-hidden">
+      <Box className="mb-6 lg:mb-8 relative overflow-hidden">
         <Box className="logo-slider">
           <Reveal direction="up" distance={30}>
             <Box className="block text-center pb-6">
