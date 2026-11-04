@@ -1803,14 +1803,7 @@ button {
 
 .faq-item {
   margin-bottom: 10px;
-  overflow: hidden;
-  transition: max-height 1s ease-in-out;
-  max-height: 65px;
-  border-bottom: 1px solid black;
-}
-
-.faq-item.open {
-  max-height: 500px;
+  border-bottom: 1px solid #707070;
 }
 
 .faq-question {

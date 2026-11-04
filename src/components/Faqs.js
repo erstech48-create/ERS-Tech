@@ -125,7 +125,7 @@ function Faqs() {
                 className="faq-question cursor-pointer flex items-center justify-between"
                 onClick={() => toggleFAQ(index)}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 pr-4 flex-1">
                   <span className="accordian-counter text-ersPrimary font-semibold">
                     0{index + 1}
                   </span>
@@ -137,11 +137,50 @@ function Faqs() {
                     {faq.question}
                   </Typography>
                 </div>
-                <span>
-                  <Box className="faq-toggle-icon text-ersPrimary h-[30px] w-[30px] border-[1px] border-[#707070] rounded-full flex items-center justify-center font-bold">
-                    {activeIndex === index ? "−" : "+"}
-                  </Box>
-                </span>
+                <div
+                  className={`faq-toggle-icon flex-shrink-0 w-[30px] h-[30px] rounded-full border flex items-center justify-center text-ersPrimary transition-colors duration-200 ${
+                    activeIndex === index
+                      ? "border-ersPrimary bg-ersPrimary/5"
+                      : "border-[#707070]"
+                  }`}
+                  aria-hidden="true"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="overflow-visible"
+                  >
+                    {/* Horizontal bar */}
+                    <line
+                      x1="2.5"
+                      y1="7"
+                      x2="11.5"
+                      y2="7"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                    />
+                    {/* Vertical bar (scales & fades out when open) */}
+                    <line
+                      x1="7"
+                      y1="2.5"
+                      x2="7"
+                      y2="11.5"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      style={{
+                        transformOrigin: "7px 7px",
+                        transform: activeIndex === index ? "scaleY(0)" : "scaleY(1)",
+                        opacity: activeIndex === index ? 0 : 1,
+                        transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease",
+                      }}
+                    />
+                  </svg>
+                </div>
               </div>
               <div className="faq-answer-wrapper">
                 <div className="faq-answer-inner faq-answer">

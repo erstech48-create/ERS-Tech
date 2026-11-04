@@ -282,13 +282,17 @@ function drawGlobe(g, w, h, o) {
   }
 }
 
+let resolveGlobe;
+export const globeReady = typeof window !== "undefined"
+  ? new Promise((r) => { resolveGlobe = r; })
+  : Promise.resolve();
+
 export default function HeroScene() {
   const ref = useRef(null);
   const cv = useRef(null);
-  const els = useRef({});
-  const set = (k) => (n) => {
-    els.current[k] = n;
-  };
+  const textWrap = useRef(null);
+  const hintRef = useRef(null);
+  const wheelRef = useRef(null);
 
   useScene(ref, {
     name: "hero",
@@ -316,17 +320,22 @@ export default function HeroScene() {
           ccx,
           ccy,
         });
+
+        resolveGlobe?.();
+
         const out = 1 - seg(p, 0.04, 0.3);
-        ["pill", "l1", "l2", "l3", "tag", "btns"].forEach((k, i) => {
-          const n = els.current[k];
-          const kin = eo(seg(t, 0.15 + i * 0.12, 0.75 + i * 0.12));
-          css(n, {
-            opacity: kin * out,
-            transform: `translateY(${(1 - kin) * 50 - (1 - out) * 90}px)`,
+        if (textWrap.current) {
+          css(textWrap.current, {
+            opacity: out,
+            transform: `translateY(${-(1 - out) * 90}px)`,
           });
-        });
-        rv(els.current.hint, seg(t, 1.4, 1.9) * (1 - seg(p, 0.02, 0.08)), 0);
-        css(els.current.wheel, { transform: `translateY(${((t * 1.2) % 1) * 12}px)` });
+        }
+        if (hintRef.current) {
+          rv(hintRef.current, 1 - seg(p, 0.02, 0.08), 0);
+        }
+        if (wheelRef.current) {
+          css(wheelRef.current, { transform: `translateY(${((t * 1.2) % 1) * 12}px)` });
+        }
       } else {
         const small = w < 600;
         drawGlobe(g, w, h, {
@@ -342,6 +351,8 @@ export default function HeroScene() {
           ccy: 0,
           small,
         });
+
+        resolveGlobe?.();
       }
     },
   });
@@ -352,30 +363,30 @@ export default function HeroScene() {
         <canvas ref={cv} className="hs-canvas" aria-hidden="true" />
       </div>
       <div className="hs-stage">
-        <div className="hs-hero-text">
-          <div ref={set("pill")} className="hs-pill">
+        <div ref={textWrap} className="hs-hero-text">
+          <div className="hs-pill">
             <span className="hs-dot" />
             BLOCKCHAIN · FINTECH · AI
           </div>
           <h1 className="hs-h1">
-            <span ref={set("l1")} className="hs-line">Transform Your Ideas</span>{" "}
-            <span ref={set("l2")} className="hs-line">
+            <span className="hs-line">Transform Your Ideas</span>{" "}
+            <span className="hs-line">
               Into <em className="hs-grad">Intelligent</em>
             </span>{" "}
-            <span ref={set("l3")} className="hs-line">
+            <span className="hs-line">
               <em className="hs-grad">Solutions.</em>
             </span>
           </h1>
-          <p ref={set("tag")} className="hs-tagline">YOUR VISION, OUR CODE.</p>
-          <div ref={set("btns")} className="hs-btns">
+          <p className="hs-tagline">YOUR VISION, OUR CODE.</p>
+          <div className="hs-btns">
             <Link href="/portfolio" className="hs-btn">View Our Work →</Link>
             <Link href="#contact" className="hs-btn hs-btn-ghost">Talk to Sales</Link>
           </div>
         </div>
       </div>
-      <div ref={set("hint")} className="hs-scroll-hint" aria-hidden="true">
+      <div ref={hintRef} className="hs-scroll-hint" aria-hidden="true">
         <div className="hs-mouse">
-          <i ref={set("wheel")} />
+          <i ref={wheelRef} />
         </div>
         SCROLL
       </div>

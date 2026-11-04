@@ -51,7 +51,7 @@ function clearMarked(root) {
 /* ---------------- stage metrics ---------------- */
 // s  = scale, sw = stage width in design px (>= 1920 on wide screens),
 // dx = sw - 1920 (extra width), ox/oy = stage offset in the viewport.
-let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 88 };
+let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 82 };
 export const getMetrics = () => metrics;
 
 function updateMetrics() {
@@ -59,7 +59,11 @@ function updateMetrics() {
   const W = window.innerWidth;
   const H = window.innerHeight;
   const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
-  const nav = clamp(isNaN(navVar) ? 88 : navVar, 56, 130);
+  const navRaw = isNaN(navVar) ? 82 : navVar;
+  let nav = clamp(navRaw, 56, 130);
+  if (Math.abs(nav - metrics.nav) <= 2) {
+    nav = metrics.nav;
+  }
   const s = Math.min(W / STAGE_W, (H - nav) / STAGE_H);
   const sw = clamp(W / s, STAGE_W, MAX_STAGE_W);
   const ox = (W - sw * s) / 2;

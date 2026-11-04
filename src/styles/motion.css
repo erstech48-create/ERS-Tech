@@ -114,12 +114,9 @@ html.js-motion .motion-init-hidden {
 }
 
 .faq-toggle-icon {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: inline-block;
-}
-
-.faq-item.open .faq-toggle-icon {
-  transform: rotate(90deg);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Portfolio Card Hover */

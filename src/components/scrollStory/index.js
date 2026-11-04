@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
+import Preloader from "./Preloader";
 import TravelCube from "./Cube";
-import HeroScene from "./HeroScene";
+import HeroScene, { globeReady } from "./HeroScene";
 import TrustScene from "./TrustScene";
 import BuildScene from "./BuildScene";
 import ServicesScene from "./ServicesScene";
@@ -18,6 +19,27 @@ export default function ScrollStory() {
     const id = window.setTimeout(refresh, 150);
     window.addEventListener("load", refresh);
     document.fonts?.ready?.then(refresh);
+
+    const root = document.documentElement;
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      root.classList.add("hs-ready"); // NEVER remove this class anywhere
+      root.classList.remove("hs-loading");
+      ScrollTrigger.refresh();
+    };
+
+    if (root.classList.contains("hs-ready")) {
+      finish();
+    } else {
+      Promise.race([
+        Promise.all([document.fonts?.ready ?? Promise.resolve(), globeReady, wait(600)]),
+        wait(3000), // safety: never block longer than 3s
+      ]).then(finish);
+    }
+
     return () => {
       window.clearTimeout(id);
       window.removeEventListener("load", refresh);
@@ -26,6 +48,7 @@ export default function ScrollStory() {
 
   return (
     <div className="hs-root">
+      <Preloader />
       <TravelCube />
       <HeroScene />
       <TrustScene />
