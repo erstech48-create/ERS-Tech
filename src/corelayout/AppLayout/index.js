@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
-import dynamic from "next/dynamic";
-const Footer = dynamic(() => import("../../components/Footer/index"));
-const Header = dynamic(() => import("../../components/Header/index"));
+import Header from "../../components/Header/index";
+import Footer from "../../components/Footer/index";
 
 const AppLayout = ({ children }) => {
   const router = useRouter();

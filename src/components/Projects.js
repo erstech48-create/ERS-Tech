@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { Box, Typography } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectFade } from "swiper/modules";
 import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import "swiper/css/effect-fade";
 import Aconomy from "@/../public/assets/projects/aconomy.webp";
 import BCCOIN from "@/../public/assets/projects/bccoin.webp";
 import Focusmonk from "@/../public/assets/projects/focusmonk.webp";
@@ -14,9 +12,15 @@ import Wise1HRM from "@/../public/assets/projects/wise1hrm.webp";
 import ABot from "@/../public/assets/projects/a-bot.webp";
 import Link from "next/link";
 import Image from "next/image";
+import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import Reveal from "@/components/motion/Reveal";
+
 function Projects({ title }) {
-  const nextButtonRef = useRef();
-  const prevButtonRef = useRef();
+  const rootRef = useRef(null);
+  const swiperRef = useRef(null);
+  const nextButtonRef = useRef(null);
+  const prevButtonRef = useRef(null);
+
   useEffect(() => {
     const handleMediaQuery = (mq) => {
       if (!nextButtonRef.current || !prevButtonRef.current) return;
@@ -46,29 +50,48 @@ function Projects({ title }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (prefersReducedMotion() || !rootRef.current) return;
+
+    // Autoplay only while in viewport to save CPU / frame rate
+    const st = ScrollTrigger.create({
+      trigger: rootRef.current,
+      start: "top bottom",
+      end: "bottom top",
+      onEnter: () => swiperRef.current?.swiper?.autoplay?.start(),
+      onLeave: () => swiperRef.current?.swiper?.autoplay?.stop(),
+      onEnterBack: () => swiperRef.current?.swiper?.autoplay?.start(),
+      onLeaveBack: () => swiperRef.current?.swiper?.autoplay?.stop(),
+    });
+
+    return () => st.kill();
+  }, []);
+
   return (
     <>
-      <Box className="relative mb-[2rem]">
+      <Box ref={rootRef} className="relative mb-[2rem]">
         <Box className="block text-center pb-6 lg:w-[70%] md:w-[70%] sm:w-[85%] xsm:w-[85%] xxs:w-[85%] xxxs:w-[85%] m-auto mb-8">
-          <Typography
-            className="capitalize !text-3xl !font-[600] font-poppins !leading-[140%] text-center"
-            variant="h2"
-            component={"h2"}
-            gutterBottom
-          >
-            {title.titleOne}{" "}
-            <span className="text-ersPrimary">{title.titleTwo}</span>
-          </Typography>
-          <Typography
-            className="!text-base !font-[400] font-poppins !leading-[130%] !tracking-[-0.16px]"
-            variant="subtitle1"
-            component={"p"}
-            gutterBottom
-          >
-            Our latest projects showcase innovative solutions in fintech and
-            blockchain development, driving digital transformation and
-            delivering cutting-edge technology for businesses worldwide.
-          </Typography>
+          <Reveal direction="up" distance={25}>
+            <Typography
+              className="capitalize !text-3xl !font-[600] font-poppins !leading-[140%] text-center"
+              variant="h2"
+              component={"h2"}
+              gutterBottom
+            >
+              {title?.titleOne || "Our Latest"}{" "}
+              <span className="text-ersPrimary">{title?.titleTwo || "Projects"}</span>
+            </Typography>
+            <Typography
+              className="!text-base !font-[400] font-poppins !leading-[130%] !tracking-[-0.16px]"
+              variant="subtitle1"
+              component={"p"}
+              gutterBottom
+            >
+              Our latest projects showcase innovative solutions in fintech and
+              blockchain development, driving digital transformation and
+              delivering cutting-edge technology for businesses worldwide.
+            </Typography>
+          </Reveal>
         </Box>
         <Box className="projects-bg-img relative overflow-hidden">
           <Box className="xl:w-[80%] lg:w-[80%] md:w-[80%] sm:w-[80%] xsm:w-full xxs:w-full xxxs:w-full max-w-[100%] m-auto position-setting">
@@ -81,6 +104,7 @@ function Projects({ title }) {
               className="swiper-button-prev !text-white"
             ></div>
             <Swiper
+              ref={swiperRef}
               className="!pt-10 !pb-10 !px-[2rem]"
               navigation={{
                 nextEl: ".swiper-button-next",
@@ -92,10 +116,11 @@ function Projects({ title }) {
               autoplay={{
                 delay: 2500,
                 disableOnInteraction: false,
+                pauseOnMouseEnter: true,
               }}
               spaceBetween={60}
               slidesPerView={3}
-              onInit={(swiper) => {
+              onInit={() => {
                 const nextButton = document.querySelector(
                   ".swiper-button-next"
                 );
@@ -142,14 +167,19 @@ function Projects({ title }) {
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
-                      src={Aconomy} className="object-cover img-style" alt="Aconomy project preview"
+                      src={Aconomy}
+                      className="object-cover img-style"
+                      alt="Aconomy project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -183,6 +213,7 @@ function Projects({ title }) {
                   </Box>
                 </Box>
               </SwiperSlide>
+
               <SwiperSlide>
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
@@ -190,13 +221,16 @@ function Projects({ title }) {
                       src={BCCOIN}
                       className="object-cover img-style"
                       alt="BlackCardCoin project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -209,12 +243,12 @@ function Projects({ title }) {
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
                     A crypto-based platform enabling users to buy BCCOIN for staking
-                    rewards and exclusive access to a personal crypto card.
+                    and participate in global crypto initiatives.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://blackcardcoin.com"
+                      href="https://blackcardcoin.com/"
                       target="_blank"
                     >
                       View Project
@@ -229,6 +263,7 @@ function Projects({ title }) {
                   </Box>
                 </Box>
               </SwiperSlide>
+
               <SwiperSlide>
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
@@ -236,13 +271,16 @@ function Projects({ title }) {
                       src={Focusmonk}
                       className="object-cover img-style"
                       alt="FocusMonk project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -254,13 +292,13 @@ function Projects({ title }) {
                     gutterBottom
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
-                    An AI-driven solution to enhance focus and productivity with
-                    performance-based rewards.
+                    An intuitive productivity app designed to help users block
+                    distractions and stay focused on tasks.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://www.focusmonk.co"
+                      href="https://focusmonk.io"
                       target="_blank"
                     >
                       View Project
@@ -275,18 +313,24 @@ function Projects({ title }) {
                   </Box>
                 </Box>
               </SwiperSlide>
+
               <SwiperSlide>
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
                     <Image
-                      src={Salharo} className="object-cover img-style" alt="Salharo project preview"
+                      src={Salharo}
+                      className="object-cover img-style"
+                      alt="Salharo project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component="h3"
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -298,13 +342,13 @@ function Projects({ title }) {
                     gutterBottom
                     className="!text-[14px] !font-[400] font-poppins !leading-[140%] text-white/90 !mb-3 min-h-[58px]"
                   >
-                    A USA-based e-commerce platform supporting payments via
-                    Stripe and PayPal.
+                    An eCommerce platform offering sustainable fashion, focusing
+                    on ethical production and zero-waste designs.
                   </Typography>
                   <Box className="flex flex-col items-start gap-1">
                     <Link
                       className="capitalize !text-base text-white !font-[600] font-poppins !leading-[140%] flex items-center hover:text-ersPrimary transition-colors"
-                      href="https://salharo.us"
+                      href="https://salharo.com/"
                       target="_blank"
                     >
                       View Project
@@ -319,6 +363,7 @@ function Projects({ title }) {
                   </Box>
                 </Box>
               </SwiperSlide>
+
               <SwiperSlide>
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
@@ -326,13 +371,16 @@ function Projects({ title }) {
                       src={Wise1HRM}
                       className="object-cover img-style"
                       alt="Wise1HRM project preview"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component={"h6"}
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >
@@ -365,6 +413,7 @@ function Projects({ title }) {
                   </Box>
                 </Box>
               </SwiperSlide>
+
               <SwiperSlide>
                 <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] one-background">
                   <Box className="rounded-[10px] xxl:h-[350px] xl:h-[290px] lg:h-[260px] h-[240px] second-bg">
@@ -372,13 +421,16 @@ function Projects({ title }) {
                       src={ABot}
                       className="object-cover img-style"
                       alt="A-Bot AI Telegram Crypto Bot"
+                      priority
+                      loading="eager"
+                      unoptimized
                     />
                   </Box>
                 </Box>
                 <Box className="project-slider-content text-start pb-2">
                   <Typography
                     variant="h6"
-                    component={"h6"}
+                    component={"h3"}
                     gutterBottom
                     className="!text-lg !font-[600] font-poppins !leading-[140%] text-white !mb-1.5"
                   >

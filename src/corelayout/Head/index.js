@@ -6,7 +6,7 @@ const SITE_URL = "https://erstech.org";
 const DEFAULT_TITLE = "ERS TECH - Custom Software & Blockchain Solutions";
 const DEFAULT_DESCRIPTION =
   "ERS TECH is a leading software development company specializing in custom Fintech and blockchain solutions. Empower your business with robust digital innovation.";
-const DEFAULT_IMAGE = `${SITE_URL}/assets/icons/og.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 /**
  * Build a BreadcrumbList schema from an array of { name, item } objects.
@@ -130,8 +130,11 @@ const Default = ({
       <meta property="og:title" content={finalTitle} />
       <meta property="og:description" content={finalDescription} />
       <meta property="og:image" content={finalImage} />
+      <meta property="og:image:secure_url" content={finalImage} />
+      <meta property="og:image:type" content="image/png" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={finalTitle} />
       {ogType === "article" && publishedTime && (
         <meta property="article:published_time" content={publishedTime} />
       )}
@@ -141,6 +144,7 @@ const Default = ({
       <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={finalDescription} />
       <meta name="twitter:image" content={finalImage} />
+      <meta name="twitter:image:alt" content={finalTitle} />
 
       {/* Touch Icons */}
       <link rel="apple-touch-icon" href="/assets/icons/og.png" />

@@ -23,6 +23,11 @@ export const aconomy = {
     h1: "Aconomy: Complete Crypto Platform",
     kicker: "TAKE BACK WHAT IS YOURS.",
     title: "Complete Crypto Platform",
+    video: {
+      src: "/assets/case-studies/aconomy/aconomy.mp4",
+      poster: "/assets/case-studies/aconomy/hero.webp",
+      type: "video/mp4",
+    },
     image: {
       src: "/assets/case-studies/aconomy/hero.webp",
       alt: "Aconomy crypto platform dashboard shown on a laptop",

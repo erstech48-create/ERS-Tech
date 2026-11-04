@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography } from "@mui/material";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import Reveal from "@/components/motion/Reveal";
+
 function Faqs() {
+  const rootRef = useRef(null);
   const faqsData = [
     {
       question: "What services do you offer?",
@@ -22,16 +26,6 @@ function Faqs() {
       answer:
         "Yes, we serve clients worldwide. Our team has the expertise to collaborate remotely and manage projects across different time zones.",
     },
-    // {
-    //   question: "What are the major services ERS delivers?",
-    //   answer:
-    //     "ERS delivers multiple services for its clients, which are as follows.\n" +
-    //     "Mobile App Development\n" +
-    //     "Web App Development\n" +
-    //     "Quality Assurance\n" +
-    //     "UI/UX Design\n" +
-    //     "Software Development",
-    // },
     {
       question: "What types of technologies does ERS support?",
       answer:
@@ -66,35 +60,60 @@ function Faqs() {
       answer:
         "Our dedicated development teams align seamlessly with your time zone and manage daily communication through modern collaboration tools such as Slack, Jira, Microsoft Teams, and Zoom.",
     },
-    // {
-    //   question: "How is ERS different from other development companies?",
-    //   answer:
-    //     "You’ll experience the following perks and benefits.\n" +
-    //     "Diverse source of expert developers\n" +
-    //     "Simple and sleek hiring process\n" +
-    //     "Shortlisting of talent under 24 hours\n" +
-    //     "Dedicated talent specialist\n" +
-    //     "Catering payments, legal and admin issues\n" +
-    //     "Talent management and performance reporting throughout the collaboration",
-    // },
   ];
+
   const [activeIndex, setActiveIndex] = useState(null);
+
+  useEffect(() => {
+    if (prefersReducedMotion() || !rootRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const items = rootRef.current.querySelectorAll(".faq-item");
+      if (items.length) {
+        gsap.set(items, { opacity: 0, y: 25 });
+        ScrollTrigger.batch(items, {
+          start: "top 85%",
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              stagger: 0.08,
+              ease: "power3.out",
+            });
+          },
+        });
+      }
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const toggleFAQ = (index) => {
     setActiveIndex(activeIndex === index ? null : index);
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 360);
   };
+
   return (
     <>
-      <Box className="4xl:!container xxxl:!container xxl:!container xl:!container lg:!container md:!container sm:max-w-full xsm:max-w-full xxs:max-w-full xxxs:max-w-full">
+      <Box
+        ref={rootRef}
+        className="4xl:!container xxxl:!container xxl:!container xl:!container lg:!container md:!container sm:max-w-full xsm:max-w-full xxs:max-w-full xxxs:max-w-full"
+      >
         <Box className="block text-center pb-6">
-          <Typography
-            className="capitalize !text-3xl !font-[600] font-poppins leading-[140%] tracking-[-0.16px] text-center"
-            variant="h2"
-            component={"h2"}
-            gutterBottom
-          >
-            Want To <span className="text-ersPrimary">Know More?</span>
-          </Typography>
+          <Reveal direction="up" distance={25}>
+            <Typography
+              className="capitalize !text-3xl !font-[600] font-poppins leading-[140%] tracking-[-0.16px] text-center"
+              variant="h2"
+              component={"h2"}
+              gutterBottom
+            >
+              Want To <span className="text-ersPrimary">Know More?</span>
+            </Typography>
+          </Reveal>
         </Box>
         <Box className="xl:w-[80%] lg:w-[80%] md:w-[80%] sm:w-[90%] xsm:w-[95%] xxs:w-[95%] xxxs:w-[95%] max-w-full mx-auto h-full min-h-full mb-[3rem]">
           {faqsData.map((faq, index) => (
@@ -102,66 +121,104 @@ function Faqs() {
               key={faq.id || faq.question || index}
               className={`faq-item ${activeIndex === index ? "open" : ""}`}
             >
-              <div className="faq-question" onClick={() => toggleFAQ(index)}>
-              <div className="flex items-center gap-4">
-                <span className="accordian-counter text-ersPrimary">
-                  0{index + 1}
-                </span>
-                <Typography
-                  variant="h6"
-                  component="h3"
-                  className="!text-lg !font-[500] font-poppins !leading-[140%] tracking-[-0.16px] xl:!mr-0 lg:!mr-0 md:!mr-0 sm:!mr-4 xsm:!mr-0 xxs:!mr-4 xxxs:!mr-4"
+              <div
+                className="faq-question cursor-pointer flex items-center justify-between"
+                onClick={() => toggleFAQ(index)}
+              >
+                <div className="flex items-center gap-4 pr-4 flex-1">
+                  <span className="accordian-counter text-ersPrimary font-semibold">
+                    0{index + 1}
+                  </span>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    className="!text-lg !font-[500] font-poppins !leading-[140%] tracking-[-0.16px] xl:!mr-0 lg:!mr-0 md:!mr-0 sm:!mr-4 xsm:!mr-0 xxs:!mr-4 xxxs:!mr-4"
+                  >
+                    {faq.question}
+                  </Typography>
+                </div>
+                <div
+                  className={`faq-toggle-icon flex-shrink-0 w-[30px] h-[30px] rounded-full border flex items-center justify-center text-ersPrimary transition-colors duration-200 ${
+                    activeIndex === index
+                      ? "border-ersPrimary bg-ersPrimary/5"
+                      : "border-[#707070]"
+                  }`}
+                  aria-hidden="true"
                 >
-                  {faq.question}
-                </Typography>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="overflow-visible"
+                  >
+                    {/* Horizontal bar */}
+                    <line
+                      x1="2.5"
+                      y1="7"
+                      x2="11.5"
+                      y2="7"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                    />
+                    {/* Vertical bar (scales & fades out when open) */}
+                    <line
+                      x1="7"
+                      y1="2.5"
+                      x2="7"
+                      y2="11.5"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      style={{
+                        transformOrigin: "7px 7px",
+                        transform: activeIndex === index ? "scaleY(0)" : "scaleY(1)",
+                        opacity: activeIndex === index ? 0 : 1,
+                        transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease",
+                      }}
+                    />
+                  </svg>
+                </div>
               </div>
-                <span className="">
-                  {activeIndex === index ? (
-                    <Box className="text-ersPrimary h-[30px] w-[30px] border-[1px] border-[#707070] rounded-[50%] flex items-center justify-center">
-                      -
-                    </Box>
-                  ) : (
-                    <Box className="text-ersPrimary h-[30px] w-[30px] border-[1px] border-[#707070] rounded-[50%] flex items-center justify-center">
-                      +
-                    </Box>
-                  )}
-                </span>
-              </div>
-              <div className="faq-answer">
-                {faq.answer.includes("\n") ? (
-                  <ul className="custom-list">
-                    {faq.answer.split("\n").map((item, i) =>
-                      i === 0 ? (
-                        <Typography
-                          key={i}
-                          variant="h6"
-                          component="p"
-                          className="!text-[15px] !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] !mb-2"
-                        >
-                          {item}
-                        </Typography>
-                      ) : (
-                        <li key={i}>
+              <div className="faq-answer-wrapper">
+                <div className="faq-answer-inner faq-answer">
+                  {faq.answer.includes("\n") ? (
+                    <ul className="custom-list">
+                      {faq.answer.split("\n").map((item, i) =>
+                        i === 0 ? (
                           <Typography
+                            key={i}
                             variant="h6"
                             component="p"
-                            className="!text-[14px] !font-[400] font-poppins"
+                            className="!text-[15px] !font-[500] font-poppins !leading-[140%] !tracking-[-0.16px] !mb-2"
                           >
                             {item}
                           </Typography>
-                        </li>
-                      )
-                    )}
-                  </ul>
-                ) : (
-                  <Typography
-                    variant="h6"
-                    component="p"
-                    className="!text-[14px] !font-[400] font-poppins !leading-[140%] !tracking-[-0.16px]"
-                  >
-                    {faq.answer}
-                  </Typography>
-                )}
+                        ) : (
+                          <li key={i}>
+                            <Typography
+                              variant="h6"
+                              component="p"
+                              className="!text-[14px] !font-[400] font-poppins"
+                            >
+                              {item}
+                            </Typography>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : (
+                    <Typography
+                      variant="h6"
+                      component="p"
+                      className="!text-[14px] !font-[400] font-poppins !leading-[140%] !tracking-[-0.16px]"
+                    >
+                      {faq.answer}
+                    </Typography>
+                  )}
+                </div>
               </div>
             </div>
           ))}

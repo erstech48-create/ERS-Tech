@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Box, Grid, Typography } from "@mui/material";
 import { ImCalendar } from "react-icons/im";
 import { MdArrowRightAlt } from "react-icons/md";
@@ -6,8 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { getBlogs } from "@/redux/features/blogs/blogSlice";
 import { useSelector, useDispatch } from "react-redux";
-import Loader from "@/utils/Loader";
 import dummy from "../../public/assets/imgs/dummy.jpg";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import SplitHeading from "@/components/motion/SplitHeading";
+import Reveal from "@/components/motion/Reveal";
 
 const formatShortDate = (dateStr) => {
   if (!dateStr) return "";
@@ -22,9 +24,12 @@ const formatShortDate = (dateStr) => {
 function FeaturedBlogs({ initialBlogs = null }) {
   const dispatch = useDispatch();
   const { AllBlogs, loading } = useSelector((state) => state.blogs);
+  const rootRef = useRef(null);
+  const gridRef = useRef(null);
   const Limit = 10;
 
-  const blogsToDisplay = (AllBlogs && AllBlogs.length > 0) ? AllBlogs : (initialBlogs || []);
+  const blogsToDisplay =
+    AllBlogs && AllBlogs.length > 0 ? AllBlogs : initialBlogs || [];
   const isLoading = loading && blogsToDisplay.length === 0;
 
   useEffect(() => {
@@ -38,9 +43,40 @@ function FeaturedBlogs({ initialBlogs = null }) {
     return str.length > maxLength ? str.substring(0, maxLength) + "..." : str;
   }
 
+  // Batch reveal running after async posts are loaded
+  useEffect(() => {
+    if (prefersReducedMotion() || !gridRef.current || !blogsToDisplay.length) return;
+
+    const ctx = gsap.context(() => {
+      const cards = gridRef.current.querySelectorAll(".blog-card-item");
+      if (cards.length) {
+        gsap.set(cards, { opacity: 0, y: 35 });
+        ScrollTrigger.batch(cards, {
+          start: "top 85%",
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.7,
+              stagger: 0.08,
+              ease: "power3.out",
+            });
+          },
+        });
+        ScrollTrigger.refresh();
+      }
+    }, gridRef);
+
+    return () => ctx.revert();
+  }, [blogsToDisplay.length]);
+
   return (
     <>
-      <Box className="4xl:!container xxxl:!container xxl:!container xl:!container lg:!container md:!container sm:max-w-full xsm:max-w-full xxs:max-w-full xxxs:max-w-full mt-[3rem] mb-20">
+      <Box
+        ref={rootRef}
+        className="4xl:!container xxxl:!container xxl:!container xl:!container lg:!container md:!container sm:max-w-full xsm:max-w-full xxs:max-w-full xxxs:max-w-full mt-[3rem] mb-20 overflow-hidden"
+      >
         <Box className="block text-center pb-6 lg:w-[60%] md:w-[60%] sm:w-[75%] xsm:w-[85%] xxs:w-[85%] xxxs:w-[85%] m-auto mb-8">
           <Typography
             className="capitalize !text-3xl !font-[600] font-poppins !leading-[140%] !tracking-[-0.16px] text-center"
@@ -48,36 +84,66 @@ function FeaturedBlogs({ initialBlogs = null }) {
             component={"h2"}
             gutterBottom
           >
-            Our Featured&nbsp;<span className="text-ersPrimary">Blogs</span>
+            <SplitHeading as="span">Our Featured </SplitHeading>
+            <span className="text-ersPrimary">
+              <SplitHeading as="span">Blogs</SplitHeading>
+            </span>
           </Typography>
-          <Typography
-            className="!text-[14px] !font-[400] font-poppins leading-[140%] !tracking-[-0.16px] text-center"
-            variant="subtitle1"
-            component={"p"}
-            gutterBottom
-          >
-            Welcome to our blog, where innovation meets knowledge. Here, we
-            share valuable insights, expert opinions, and industry trends on the
-            latest in technology, software development, blockchain, fintech, and
-            much more.
-          </Typography>
+          <Reveal direction="up" distance={20} delay={0.2}>
+            <Typography
+              className="!text-[14px] !font-[400] font-poppins leading-[140%] !tracking-[-0.16px] text-center"
+              variant="subtitle1"
+              component={"p"}
+              gutterBottom
+            >
+              Welcome to our blog, where innovation meets knowledge. Here, we
+              share valuable insights, expert opinions, and industry trends on the
+              latest in technology, software development, blockchain, fintech, and
+              much more.
+            </Typography>
+          </Reveal>
         </Box>
+
         <Box className="w-[90%] max-w-full mx-auto">
           <Box className="h-full">
             {isLoading ? (
-              <Loader />
-            ) : blogsToDisplay.length > 0 ? (
+              /* 6 Skeleton Cards with Pure CSS Shimmer */
               <Grid container spacing={6}>
+                {[1, 2, 3, 4, 5, 6].map((sk) => (
+                  <Grid key={sk} item xs={12} sm={12} md={6} lg={4}>
+                    <div className="h-[430px] rounded-[20px] bg-white border border-gray-100 p-4 shadow-sm">
+                      <div className="w-full h-[240px] rounded-[16px] skeleton-shimmer mb-6" />
+                      <div className="h-5 w-3/4 rounded skeleton-shimmer mb-3" />
+                      <div className="h-4 w-full rounded skeleton-shimmer mb-2" />
+                      <div className="h-4 w-2/3 rounded skeleton-shimmer mb-6" />
+                      <div className="flex justify-between items-center pt-2">
+                        <div className="h-4 w-24 rounded skeleton-shimmer" />
+                        <div className="h-4 w-20 rounded skeleton-shimmer" />
+                      </div>
+                    </div>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : blogsToDisplay.length > 0 ? (
+              <Grid ref={gridRef} container spacing={6}>
                 {blogsToDisplay?.map((data, i) => {
                   return (
-                    <Grid key={data.id || data.slug || i} item xs={12} sm={12} md={6} lg={4}>
+                    <Grid
+                      key={data.id || data.slug || i}
+                      item
+                      xs={12}
+                      sm={12}
+                      md={6}
+                      lg={4}
+                      className="blog-card-item"
+                    >
                       <Link
                         href={`/blogs/${data.slug}`}
                         aria-label={`Read more about ${data.title}`}
                         className="block h-full group"
                       >
                         <Box className="h-[430px] min-h-full relative">
-                          <Box className="block w-full h-[250px] mb-6 mx-auto rounded-[20px] relative z-[1]">
+                          <Box className="blog-card-img-wrap block w-full h-[250px] mb-6 mx-auto rounded-[20px] relative z-[1]">
                             <Image
                               src={data.image ? data.image : dummy}
                               width={400}
@@ -93,7 +159,7 @@ function FeaturedBlogs({ initialBlogs = null }) {
                               variant="h6"
                               component="h3"
                               gutterBottom
-                              className="!text-[16px] !font-[600] font-poppins !leading-[140%] !tracking-[-0.16px]  capitalize !mb-4"
+                              className="blog-title-link !text-[16px] !font-[600] font-poppins !leading-[140%] !tracking-[-0.16px] capitalize !mb-4 transition-colors duration-200"
                             >
                               {data.title}
                             </Typography>
@@ -101,7 +167,7 @@ function FeaturedBlogs({ initialBlogs = null }) {
                               variant="body2"
                               gutterBottom
                               display={"block"}
-                              className="!text-[#8989A2] !text-sm !font-[400] font-poppins !leading-[160%] !tracking-[-0.16px mb-6"
+                              className="!text-[#8989A2] !text-sm !font-[400] font-poppins !leading-[160%] !tracking-[-0.16px] mb-6 line-clamp-2"
                             >
                               {truncateString(data.meta_description)}
                             </Typography>
@@ -141,7 +207,8 @@ function FeaturedBlogs({ initialBlogs = null }) {
                   variant="body1"
                   className="font-poppins !font-[400] !text-sm !text-gray-600 !mb-6"
                 >
-                  We are curating insightful articles on Fintech, blockchain, AI, and modern software engineering. Check back soon!
+                  We are curating insightful articles on Fintech, blockchain, AI, and
+                  modern software engineering. Check back soon!
                 </Typography>
                 <Link
                   href="/services"

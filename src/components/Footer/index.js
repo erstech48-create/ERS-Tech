@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -20,11 +20,25 @@ import {
   FaPinterestP,
   FaFacebookF,
   FaWhatsapp,
+  FaArrowUp,
 } from "react-icons/fa";
+import { useLenis } from "@/components/motion/SmoothScroll";
+import Stagger from "@/components/motion/Stagger";
+import Reveal from "@/components/motion/Reveal";
 
 function Footer() {
   const router = useRouter();
+  const { scrollTo } = useLenis();
   const [workEmail, setWorkEmail] = useState("");
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 600);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleWorkWithUsSubmit = (e) => {
     e.preventDefault();
@@ -45,8 +59,9 @@ function Footer() {
       <Box component="footer" className="w-full max-w-[1920px] mx-auto bg-gradient-to-r to-[#0E51CD] from-[#29BCF1] pt-20 pb-10">
         <Box className="w-[90%] max-w-full mx-auto">
           <Box className="text-white">
-            <Grid container spacing={4}>
-              <Grid item xs={12} sm={6} md={6} lg={4}>
+            <Stagger selector=".MuiGrid-item" stagger={0.08}>
+              <Grid container spacing={4}>
+                <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Box className="block text-start">
                   <Image
                     src={logo}
@@ -240,7 +255,7 @@ function Footer() {
                           primary={
                             <a
                               href="mailto:info@erstech.org"
-                              className="text-white !text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] capitalize hover:text-ersPrimary"
+                              className="text-white !text-[14px] !font-[400] font-poppins leading-[140%] tracking-[-0.16px] hover:text-ersPrimary"
                             >
                               Email: info@erstech.org
                             </a>
@@ -265,8 +280,9 @@ function Footer() {
                 </Box>
               </Grid>
             </Grid>
-          </Box>
-          <Box className="lg:w-[60%] md:w-[80%] sm:w-[80%] xsm:w-[80%] xxs:w-[80%] xxxs:w-[70%] max-w-full mx-auto">
+          </Stagger>
+        </Box>
+        <Box className="lg:w-[60%] md:w-[80%] sm:w-[80%] xsm:w-[80%] xxs:w-[80%] xxxs:w-[70%] max-w-full mx-auto">
             <Divider className="!my-10 !border-white opacity-20" />
             <List className="flex items-center justify-center !mb-6">
               <ListItem className="xl:!w-[10%] lg:!w-[10%] md:!w-[10%] sm:!w-[10%] xsm:!w-[20%] xxs:!w-[20%] xxxs:!w-[25%]">
@@ -377,6 +393,18 @@ function Footer() {
           </Box>
         </Box>
       </Box>
+
+      {/* Back to top button */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => scrollTo(0)}
+          aria-label="Scroll to top"
+          className="fixed bottom-6 right-6 z-40 p-3.5 bg-white text-[#26AFED] rounded-full shadow-2xl hover:bg-[#26AFED] hover:text-white transition-all duration-300 flex items-center justify-center border-2 border-[#26AFED]/20 hover:scale-110 focus:outline-none"
+        >
+          <FaArrowUp size={16} />
+        </button>
+      )}
     </>
   );
 }
