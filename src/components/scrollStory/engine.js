@@ -10,9 +10,13 @@ export const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3)
 export const eo = (x) => 1 - Math.pow(1 - x, 3);
 export const lerp = (a, b, t) => a + (b - a) * t;
 
-export const STAGE_W = 1920; // design width
-export const STAGE_H = 984; // design height (viewport minus navbar)
+export const STAGE_W = 1920; // desktop design width
+export const STAGE_H = 984; // desktop design height (viewport minus navbar)
 const MAX_STAGE_W = 2500; // wider than this, the stage is centred again
+// Phones/tablets (< 1024px) use a portrait stage with their own layout
+export const STAGE_W_M = 430;
+export const STAGE_H_M = 860;
+const MAX_STAGE_W_M = 560;
 export const DESKTOP_MQ = "(min-width: 1024px)";
 // Higher = scroll animations follow the scrollbar more tightly.
 const FOLLOW = 7;
@@ -51,36 +55,48 @@ function clearMarked(root) {
 /* ---------------- stage metrics ---------------- */
 // s  = scale, sw = stage width in design px (>= 1920 on wide screens),
 // dx = sw - 1920 (extra width), ox/oy = stage offset in the viewport.
-let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 82 };
+let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 82, mobile: false };
+/** true when the portrait (phone/tablet) stage is active */
+export const isMobile = () => metrics.mobile;
+/** pick a value for desktop or mobile stage */
+export const MV = (desktop, mobile) => (metrics.mobile ? mobile : desktop);
 export const getMetrics = () => metrics;
 
 function updateMetrics() {
   if (typeof window === "undefined") return;
   const W = window.innerWidth;
-  const H = window.innerHeight;
+  let H = window.innerHeight;
+  const mobile = W < 1024;
+  // On phones the address bar changes the height while scrolling; ignore that
+  if (mobile && metrics.mobile && W === metrics.W && Math.abs(H - metrics.H) < 160) H = metrics.H;
   const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
   const navRaw = isNaN(navVar) ? 82 : navVar;
   let nav = clamp(navRaw, 56, 130);
   if (Math.abs(nav - metrics.nav) <= 2) {
     nav = metrics.nav;
   }
-  const s = Math.min(W / STAGE_W, (H - nav) / STAGE_H);
-  const sw = clamp(W / s, STAGE_W, MAX_STAGE_W);
+  const SW = mobile ? STAGE_W_M : STAGE_W;
+  const SH = mobile ? STAGE_H_M : STAGE_H;
+  const s = Math.min(W / SW, (H - nav) / SH);
+  const sw = clamp(W / s, SW, mobile ? MAX_STAGE_W_M : MAX_STAGE_W);
   const ox = (W - sw * s) / 2;
-  const oy = nav + (H - nav - STAGE_H * s) / 2;
-  metrics = { s, sw, dx: sw - STAGE_W, ox, oy, W, H, nav };
+  const oy = nav + (H - nav - SH * s) / 2;
+  metrics = { s, sw, dx: sw - SW, ox, oy, W, H, nav, mobile };
+  document.documentElement.classList.toggle("hs-m", mobile);
   const r = document.documentElement.style;
   r.setProperty("--hs-scale", String(s));
   r.setProperty("--hs-ox", `${ox}px`);
   r.setProperty("--hs-oy", `${oy}px`);
   r.setProperty("--hs-sw", `${sw}px`);
-  r.setProperty("--hs-dx", `${sw - STAGE_W}px`);
+  r.setProperty("--hs-dx", `${sw - SW}px`);
+  r.setProperty("--hs-vh", `${H}px`);
 }
 
 let metricsBound = false;
 function bindMetrics() {
   if (metricsBound || typeof window === "undefined") return;
   metricsBound = true;
+  ScrollTrigger.config({ ignoreMobileResize: true });
   updateMetrics();
   window.addEventListener("resize", updateMetrics);
   ScrollTrigger.addEventListener("refreshInit", updateMetrics);
@@ -126,7 +142,7 @@ export function addTicker(fn) {
 export function scenePos(name, p) {
   const r = registry[name];
   if (!r) return null;
-  return r.st.start + p * r.len * window.innerHeight;
+  return r.st.start + p * r.len * metrics.H;
 }
 
 /**
@@ -147,7 +163,8 @@ export function useScene(ref, opts) {
     const reduced = prefersReducedMotion();
     const mm = gsap.matchMedia();
 
-    mm.add(DESKTOP_MQ, () => {
+    // Animated mode on every screen size; re-runs when crossing the 1024px breakpoint
+    mm.add({ d: DESKTOP_MQ, m: "(max-width: 1023px)" }, () => {
       if (reduced) return undefined;
       enterAnim();
       updateMetrics();
@@ -160,7 +177,7 @@ export function useScene(ref, opts) {
       const st = ScrollTrigger.create({
         trigger: el,
         start: "top top",
-        end: () => "+=" + window.innerHeight * (len + tail),
+        end: () => "+=" + metrics.H * (len + tail),
         pin: true,
         pinSpacing: true,
         anticipatePin: 1,
@@ -222,8 +239,8 @@ export function useScene(ref, opts) {
     });
 
     // Static mode: mobile, or desktop with reduced motion.
-    mm.add(`(max-width: 1023px), (prefers-reduced-motion: reduce)`, () => {
-      if (!reduced && window.matchMedia(DESKTOP_MQ).matches) return undefined;
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      if (!reduced) return undefined;
       const sp = opts.staticP ?? 1;
       opts.render(sp, 0, "static", el);
       let remove = null;

@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import "@/styles/motion.css";
 import "@/styles/scroll-story.css";
+import "@/styles/scroll-story-mobile.css";
 import "@/styles/header.css";
 import "@/styles/case-study.css";
 import AppLayout from "../corelayout/AppLayout/index";
@@ -33,6 +34,7 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/favicon.ico" />
         <script
           type="application/ld+json"

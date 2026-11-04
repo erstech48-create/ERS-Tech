@@ -107,12 +107,17 @@ export default function ChainScene() {
         return;
       }
       const m = getMetrics();
-      const s = lerp(2.2, 0.5, eio(seg(p, 0, 0.55)));
+      const mob = m.mobile;
+      const zk = eio(seg(p, 0, 0.55));
+      const s = mob ? lerp(1.5, 0.42, zk) : lerp(2.2, 0.5, zk);
+      // chain centre: desktop middle of the stage; phones slide it to the left edge for the callouts
+      const CX = mob ? lerp(ax(215, 0.5), 80, zk) : ax(960, 0.5);
+      const CY = mob ? 575 : 492;
       const endC = 12 * PITCH + 110;
       const cy = endC - 600 * (1 - eo(seg(p, 0, 0.72)));
-      css(chain.current, { transform: `scale(${s}) translateY(${-cy}px)` });
-      const [vcx] = toView(ax(960, 0.5), 0);
-      drawBg(g, w, h, t, vcx, lerp(260, 380, eio(seg(p, 0, 0.55))) * m.s, 0.6 + s * 0.4);
+      css(chain.current, { left: `${CX}px`, top: `${CY}px`, transform: `scale(${s}) translateY(${-cy}px)` });
+      const [vcx] = toView(CX, 0);
+      drawBg(g, w, h, t, vcx, (mob ? lerp(120, 90, zk) : lerp(260, 380, zk)) * m.s, 0.6 + s * 0.4);
 
       ["h1", "h2", "h3"].forEach((k, i) => rv(r.current[k], eo(seg(p, 0.3 + i * 0.06, 0.46 + i * 0.06)), 60));
       rv(r.current.eyebrow, eo(seg(p, 0.25, 0.38)), 20);
@@ -123,10 +128,10 @@ export default function ChainScene() {
       Object.keys(HL).forEach((key) => {
         const i = +key;
         const k = eo(seg(p, 0.62 + (i - 10) * 0.01, 0.74 + (i - 10) * 0.01));
-        const y = 492 + (i * PITCH + 110 - cy) * s;
-        css(calls.current[i], { top: `${y - 70}px`, opacity: k, transform: `translateX(${(1 - k) * 60}px)` });
-        const x0 = ax(960, 0.5) + 110 * s + 14;
-        const x1 = ax(1250, 0.65);
+        const y = CY + (i * PITCH + 110 - cy) * s;
+        css(calls.current[i], { top: `${y - (mob ? 44 : 70)}px`, opacity: k, transform: `translateX(${(1 - k) * 60}px)` });
+        const x0 = CX + 110 * s + (mob ? 6 : 14);
+        const x1 = mob ? 166 : ax(1250, 0.65);
         css(lines.current[i], { left: `${x0}px`, top: `${y}px`, width: `${Math.max(0, (x1 - x0) * k)}px` });
       });
     },

@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef } from "react";
-import { addTicker, scenePos, toView, getMetrics, eio, clamp, lerp, DESKTOP_MQ } from "./engine";
+import { addTicker, scenePos, toView, getMetrics, eio, clamp, lerp } from "./engine";
 import { prefersReducedMotion } from "@/lib/gsap";
 
 /** Isometric "data block" that matches the ERS logo cube. */
@@ -55,6 +55,21 @@ const KF = [
   ["values", 0.5, 960, 234, 180, 1, 0.5],
   ["values", 1.0, 960, 234, 180, 1, 0.5],
 ];
+// Phone/tablet stage (430 x 860)
+const KF_M = [
+  ["hero", 0.0, 215, 430, 30, 0, 0.5],
+  ["hero", 0.52, 215, 430, 40, 0, 0.5],
+  ["hero", 0.62, 215, 430, 130, 1, 0.5],
+  ["hero", 1.0, 215, 430, 130, 1, 0.5],
+  ["trust", 0.04, 372, 34, 64, 1, 1],
+  ["trust", 1.0, 372, 34, 64, 1, 1],
+  ["build", 0.0, 215, 510, 110, 1, 0.5],
+  ["build", 0.06, 215, 510, 120, 1, 0.5],
+  ["build", 0.13, 215, 510, 180, 0, 0.5],
+  ["values", 0.36, 215, 250, 40, 0, 0.5],
+  ["values", 0.5, 215, 250, 110, 1, 0.5],
+  ["values", 1.0, 215, 250, 110, 1, 0.5],
+];
 
 /** Fixed cube that travels between scenes on desktop. */
 export default function TravelCube() {
@@ -62,15 +77,14 @@ export default function TravelCube() {
   useEffect(() => {
     const node = ref.current;
     if (!node || prefersReducedMotion()) return undefined;
-    const mq = window.matchMedia(DESKTOP_MQ);
     let sy0 = window.scrollY;
     return addTicker((t, dt) => {
-      if (!mq.matches || !document.documentElement.classList.contains("hs-anim")) {
+      if (!document.documentElement.classList.contains("hs-anim")) {
         node.style.display = "none";
         return;
       }
       const m0 = getMetrics();
-      const pts = KF.map((k) => [scenePos(k[0], k[1]), ...k.slice(2)]);
+      const pts = (m0.mobile ? KF_M : KF).map((k) => [scenePos(k[0], k[1]), ...k.slice(2)]);
       if (pts.some((p) => p[0] == null)) {
         node.style.display = "none";
         return;

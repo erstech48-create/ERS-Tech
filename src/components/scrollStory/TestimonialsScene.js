@@ -122,9 +122,13 @@ export default function TestimonialsScene() {
       if (mode !== "anim") return;
       const f = eio(seg(p, 0, 0.5));
       const st = eio(seg(p, 0.5, 0.72));
-      const X = lerp(lerp(-300, ax(780, 0.5), f), ax(1330, 1), st);
-      const Y = lerp(lerp(1004, 234, f), 96, st);
-      const Sc = lerp(lerp(0.45, 1.35, f), 0.7, st);
+      const mob = getMetrics().mobile;
+      // card centre path; the card is 520x328 and scales around its centre
+      const X = mob
+        ? lerp(lerp(-150, ax(215, 0.5), f), ax(352, 1), st) - 260
+        : lerp(lerp(-300, ax(780, 0.5), f), ax(1330, 1), st);
+      const Y = mob ? lerp(lerp(900, 380, f), 192, st) - 164 : lerp(lerp(1004, 234, f), 96, st);
+      const Sc = mob ? lerp(lerp(0.3, 0.72, f), 0.26, st) : lerp(lerp(0.45, 1.35, f), 0.7, st);
       const [vx, vy] = toView(X + 260, Y + 164);
       const c = cv.current;
       if (c && p < 0.62) {
@@ -141,6 +145,7 @@ export default function TestimonialsScene() {
       const RX = lerp(lerp(55, 10, f), 8, st);
       const RZ = lerp(lerp(-30, -6, f), 6, st) + Math.sin(t * 1.5) * 1.5;
       css(card.current, {
+        opacity: mob ? 1 - seg(p, 0.56, 0.66) : 1,
         transform: `translate(${X}px, ${Y + Math.sin(t * 2) * 6}px) perspective(1400px) rotateX(${RX}deg) rotateY(${RY}deg) rotateZ(${RZ}deg) scale(${Sc})`,
       });
       const k = [0, 1, 2].map((i) => eo(seg(p, 0.5 + i * 0.05, 0.64 + i * 0.05)));
@@ -148,9 +153,12 @@ export default function TestimonialsScene() {
       rv(h2.current, k[1], 40);
       rv(meta.current, k[2], 20);
       // cards rise in, then the track slides through all reviews
-      const total = REVIEWS.length * (CARD_W + CARD_GAP) - CARD_GAP;
+      const cw = mob ? 360 : CARD_W;
+      const cg = mob ? 16 : CARD_GAP;
+      const total = REVIEWS.length * (cw + cg) - cg;
       const slide = eio(seg(p, 0.64, 0.97));
-      const x = lerp(140, Math.min(140, ax(1780, 1) - total), slide);
+      const x0 = mob ? 24 : 140;
+      const x = lerp(x0, Math.min(x0, ax(mob ? 406 : 1780, 1) - total), slide);
       css(track.current, { transform: `translateX(${x}px)` });
       tcards.current.forEach((n, i) => {
         const ki = eo(seg(p, 0.56 + Math.min(i, 3) * 0.03, 0.68 + Math.min(i, 3) * 0.03));

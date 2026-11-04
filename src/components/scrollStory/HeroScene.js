@@ -304,12 +304,16 @@ export default function HeroScene() {
       if (mode === "anim") {
         const m = getMetrics();
         const z = eio(seg(p, 0.15, 0.5));
-        const [gx, gy] = toView(lerp(ax(1390, 0.9), ax(960, 0.5), z), lerp(470, 424, z));
-        const [ccx, ccy] = toView(ax(960, 0.5), 424);
+        const mob = m.mobile;
+        const [gx, gy] = mob
+          ? toView(ax(215, 0.5), lerp(655, 430, z))
+          : toView(lerp(ax(1390, 0.9), ax(960, 0.5), z), lerp(470, 424, z));
+        const [ccx, ccy] = mob ? toView(ax(215, 0.5), 430) : toView(ax(960, 0.5), 424);
         drawGlobe(g, w, h, {
           cx: gx,
           cy: gy,
-          R: lerp(380, 640, z) * m.s,
+          R: (mob ? lerp(175, 300, z) : lerp(380, 640, z)) * m.s,
+          small: mob,
           rot: -1.05 + t * 0.045 + p * 0.9,
           t,
           fade: 1 - seg(p, 0.42, 0.6),

@@ -29,9 +29,13 @@ export default function ScrollStory() {
       root.classList.add("hs-ready"); // NEVER remove this class anywhere
       root.classList.remove("hs-loading");
       ScrollTrigger.refresh();
+      setTimeout(() => {
+        root.classList.add("hs-entered");
+      }, 1200);
     };
 
     if (root.classList.contains("hs-ready")) {
+      root.classList.add("hs-entered");
       finish();
     } else {
       Promise.race([

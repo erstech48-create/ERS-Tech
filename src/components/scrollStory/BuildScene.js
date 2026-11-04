@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useScene, ax, seg, eo, eio, lerp, css } from "./engine";
+import { useScene, ax, isMobile, seg, eo, eio, lerp, css } from "./engine";
 
 const STEPS = [
   ["STEP 01", "UI/UX Design", "Wireframes, user flows and design systems"],
@@ -112,27 +112,37 @@ export default function BuildScene() {
       );
       css(R.bar, { height: `${lerp(0, 100, seg(p, 0, 0.85))}%` });
 
+      // Desktop uses stage coordinates; phones use the 900x620 device group (scaled in CSS)
+      const mob = isMobile();
+      const L = mob
+        ? { dx: 80, dy0: -1100, dy1: 10, crane: -900, sx: 490, sy: 260, px0: -300, py0: 900, px1: 0, py1: 110, depY: 540, liveX: 790, liveY: -10 }
+        : { dx: ax(930, 0.7), dy0: -640, dy1: 204, crane: -120, sx: ax(1300, 0.7), sy: 464, py0: 1000, py1: 354, depY: 764, liveY: 174 };
+      if (!mob) {
+        L.px0 = L.dx - 370;
+        L.px1 = L.dx - 80;
+        L.liveX = L.dx + 740;
+      }
       const ex = seg(p, 0.06, 0.2);
       shards.current.forEach((s, i) => {
         const a = (i / 14) * Math.PI * 2;
         const d = eo(ex) * lerp(160, 320, ((i * 7) % 5) / 5);
         css(s, {
-          left: `${ax(1300, 0.7) - 13 + Math.cos(a) * d}px`,
-          top: `${464 - 13 + Math.sin(a) * d}px`,
+          left: `${L.sx - 13 + Math.cos(a) * d}px`,
+          top: `${L.sy - 13 + Math.sin(a) * d}px`,
           opacity: ex > 0 ? 1 - seg(p, 0.15, 0.24) : 0,
           transform: `rotate(${ex * 300 + i * 20}deg) scale(${1 - ex * 0.4})`,
         });
       });
 
-      const dx = ax(930, 0.7);
-      const dy = lerp(-640, 204, eo(seg(p, 0.13, 0.33)));
+      const dx = L.dx;
+      const dy = lerp(L.dy0, L.dy1, eo(seg(p, 0.13, 0.33)));
       const on = seg(p, 0.12, 0.14);
       css(R.dash, { left: `${dx}px`, top: `${dy}px`, opacity: on });
       const ret = seg(p, 0.34, 0.42);
       css(R.crane, {
         left: `${dx + 410}px`,
-        top: `${-120}px`,
-        height: `${Math.max(0, lerp(dy + 120, 0, eio(ret)))}px`,
+        top: `${L.crane}px`,
+        height: `${Math.max(0, lerp(dy - L.crane, 0, eio(ret)))}px`,
         opacity: on * (1 - seg(p, 0.4, 0.43)),
       });
       const col = seg(p, 0.36, 0.5);
@@ -145,22 +155,22 @@ export default function BuildScene() {
 
       const ph = eo(seg(p, 0.48, 0.62));
       css(R.phone, {
-        left: `${lerp(dx - 370, dx - 80, ph)}px`,
-        top: `${lerp(1000, 354, ph)}px`,
+        left: `${lerp(L.px0, L.px1, ph)}px`,
+        top: `${lerp(L.py0, L.py1, ph)}px`,
         transform: `rotate(${lerp(-14, -4, ph)}deg)`,
         opacity: seg(p, 0.48, 0.5),
       });
 
       const dk = eo(seg(p, 0.6, 0.66));
-      css(R.deploy, { left: `${dx}px`, top: `${764 + (1 - dk) * 40}px`, opacity: dk });
+      css(R.deploy, { left: `${dx}px`, top: `${L.depY + (1 - dk) * 40}px`, opacity: dk });
       const pr = eio(seg(p, 0.64, 0.8));
       css(R.fill, { width: `${pr * 100}%` });
       if (R.pct) R.pct.textContent = `${Math.round(pr * 100)}%`;
       if (R.dtxt) R.dtxt.textContent = pr >= 1 ? "Deployed to production" : "Deploying to production";
       const lv = seg(p, 0.8, 0.86);
       css(R.live, {
-        left: `${dx + 740}px`,
-        top: "174px",
+        left: `${L.liveX}px`,
+        top: `${L.liveY}px`,
         opacity: lv,
         transform: `scale(${lerp(0.4, 1, eo(lv)) + 0.06 * Math.sin(seg(lv * 3, 0, 1) * Math.PI)})`,
       });

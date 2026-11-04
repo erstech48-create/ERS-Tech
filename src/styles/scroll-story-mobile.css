@@ -1,0 +1,503 @@
+/* ==========================================================================
+   Home scroll story – phone / tablet cinematic mode (< 1024px)
+   html.hs-anim.hs-m : every scene is pinned and drawn on a 430 x 860 portrait
+   stage that is scaled to the screen (same transitions as desktop).
+   These rules override the desktop html.hs-anim positions.
+   ========================================================================== */
+html.hs-anim.hs-m .hs-stage {
+  height: 860px;
+}
+html.hs-anim.hs-m .hs-eyebrow {
+  font-size: 12px;
+  gap: 8px;
+}
+html.hs-anim.hs-m .hs-h2 {
+  font-size: 32px;
+  margin-top: 10px;
+}
+html.hs-anim.hs-m .hs-btns {
+  gap: 10px;
+  margin-top: 22px;
+}
+html.hs-anim.hs-m .hs-btn {
+  font-size: 15px;
+  padding: 13px 22px;
+}
+html.hs-anim.hs-m .hs-tags span {
+  font-size: 12px;
+  padding: 5px 11px;
+}
+
+/* 01 hero */
+html.hs-anim.hs-m .hs-hero-text {
+  left: 24px;
+  top: 28px;
+  width: calc(382px + var(--hs-dx));
+}
+html.hs-anim.hs-m .hs-pill {
+  font-size: 11px;
+  padding: 7px 13px;
+}
+html.hs-anim.hs-m .hs-h1 {
+  font-size: 44px;
+  margin-top: 18px !important;
+}
+html.hs-anim.hs-m .hs-tagline {
+  font-size: 12px;
+  margin-top: 16px !important;
+}
+
+/* 02 trust */
+html.hs-anim.hs-m .hs-trust-rings {
+  display: none;
+}
+html.hs-anim.hs-m .hs-trust-eyebrow {
+  left: 24px;
+  top: 24px;
+}
+html.hs-anim.hs-m .hs-trust-h2 {
+  left: 24px;
+  top: 50px;
+  width: calc(326px + var(--hs-dx));
+  font-size: 29px;
+}
+html.hs-anim.hs-m .hs-stats {
+  left: 24px;
+  top: 300px;
+  width: calc(382px + var(--hs-dx));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+html.hs-anim.hs-m .hs-stat {
+  height: 150px;
+  padding: 16px 18px;
+  border-radius: 18px;
+}
+html.hs-anim.hs-m .hs-stat-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+html.hs-anim.hs-m .hs-stat-ic svg {
+  width: 20px;
+  height: 20px;
+}
+html.hs-anim.hs-m .hs-stat b {
+  font-size: 40px;
+  margin-top: 8px;
+}
+html.hs-anim.hs-m .hs-stat p {
+  font-size: 13px;
+}
+html.hs-anim.hs-m .hs-stat-bar {
+  height: 4px;
+  margin-top: 10px;
+}
+html.hs-anim.hs-m .hs-mq-head {
+  left: 24px;
+  top: 636px;
+  width: calc(382px + var(--hs-dx));
+  font-size: 10px;
+  gap: 10px;
+}
+html.hs-anim.hs-m .hs-marquee {
+  top: 668px;
+  height: 120px;
+}
+html.hs-anim.hs-m .hs-logo-pill {
+  width: 190px;
+  height: 92px;
+  padding: 14px 20px;
+  border-radius: 18px;
+}
+
+/* 03 build */
+html.hs-anim.hs-m .hs-build-left {
+  left: 24px;
+  top: 24px;
+  width: calc(382px + var(--hs-dx));
+}
+html.hs-anim.hs-m .hs-build .hs-h2 {
+  font-size: 30px;
+}
+html.hs-anim.hs-m .hs-steps {
+  margin-top: 20px;
+  padding-left: 22px;
+}
+html.hs-anim.hs-m .hs-step {
+  margin-bottom: 12px;
+}
+html.hs-anim.hs-m .hs-step small {
+  font-size: 11px;
+}
+html.hs-anim.hs-m .hs-step div {
+  font-size: 17px;
+}
+html.hs-anim.hs-m .hs-step p {
+  font-size: 12.5px;
+}
+html.hs-anim.hs-m .hs-build-devices {
+  left: calc(17px + var(--hs-dx) / 2);
+  top: 400px;
+  width: 900px;
+  height: 620px;
+  transform: scale(0.44);
+  transform-origin: 0 0;
+}
+html.hs-anim.hs-m .hs-build-scaler {
+  width: 900px;
+  height: 620px;
+}
+
+/* 04 services */
+html.hs-anim.hs-m .hs-services-eyebrow {
+  left: 24px;
+  top: 24px;
+}
+html.hs-anim.hs-m .hs-services-h2 {
+  left: 24px;
+  top: 50px;
+  width: calc(382px + var(--hs-dx));
+  font-size: 32px;
+}
+html.hs-anim.hs-m .hs-svc-row {
+  left: 24px;
+  top: 150px;
+  width: calc(382px + var(--hs-dx));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+html.hs-anim.hs-m .hs-svc {
+  height: 216px;
+  min-height: 0;
+  padding: 16px 14px;
+  border-radius: 18px;
+}
+html.hs-anim.hs-m .hs-svc-badge,
+html.hs-anim.hs-m .hs-svc-features {
+  display: none;
+}
+html.hs-anim.hs-m .hs-svc-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+html.hs-anim.hs-m .hs-svc-ic svg {
+  width: 24px;
+  height: 24px;
+}
+html.hs-anim.hs-m .hs-svc h3 {
+  font-size: 16px;
+  margin-top: 14px;
+  padding-top: 0;
+}
+html.hs-anim.hs-m .hs-svc p {
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin-top: 6px !important;
+}
+html.hs-anim.hs-m .hs-svc-more {
+  font-size: 12px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* 05 industries */
+html.hs-anim.hs-m .hs-ind-big,
+html.hs-anim.hs-m .hs-ind-lead,
+html.hs-anim.hs-m .hs-ind-nav {
+  display: none;
+}
+html.hs-anim.hs-m .hs-ind-left {
+  left: 24px;
+  top: 22px;
+  width: calc(382px + var(--hs-dx));
+}
+html.hs-anim.hs-m .hs-industries .hs-h2 {
+  font-size: 32px;
+}
+html.hs-anim.hs-m .hs-ind-cnt {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+}
+html.hs-anim.hs-m .hs-ind-cnt b {
+  font-size: 30px;
+}
+html.hs-anim.hs-m .hs-ind-deck {
+  left: 24px;
+  top: 200px;
+  width: calc(382px + var(--hs-dx));
+  height: 600px;
+}
+html.hs-anim.hs-m .hs-ind {
+  border-radius: 24px;
+}
+html.hs-anim.hs-m .hs-ind-visual {
+  height: 200px;
+}
+html.hs-anim.hs-m .hs-vis {
+  transform: scale(0.44);
+}
+html.hs-anim.hs-m .hs-ind-body {
+  padding: 18px 20px;
+}
+html.hs-anim.hs-m .hs-ind-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+html.hs-anim.hs-m .hs-ind-ic svg {
+  width: 24px;
+  height: 24px;
+}
+html.hs-anim.hs-m .hs-ind h3 {
+  font-size: 24px;
+}
+html.hs-anim.hs-m .hs-ind-body p {
+  font-size: 14px;
+  margin-top: 10px !important;
+}
+html.hs-anim.hs-m .hs-ind-body ul {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+html.hs-anim.hs-m .hs-ind-body li {
+  font-size: 13.5px;
+  gap: 8px;
+}
+html.hs-anim.hs-m .hs-ind-body li svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 06 chain */
+html.hs-anim.hs-m .hs-chain-head {
+  left: 24px;
+  top: 20px;
+  width: calc(382px + var(--hs-dx));
+}
+html.hs-anim.hs-m .hs-chain-h2 {
+  font-size: 44px;
+  margin-top: 12px !important;
+}
+html.hs-anim.hs-m .hs-chain-sub {
+  width: auto;
+  font-size: 13.5px;
+  margin-top: 12px !important;
+}
+html.hs-anim.hs-m .hs-chain-stats,
+html.hs-anim.hs-m .hs-call-img,
+html.hs-anim.hs-m .hs-call-go {
+  display: none;
+}
+html.hs-anim.hs-m .hs-call {
+  left: 166px;
+  width: calc(240px + var(--hs-dx));
+  padding: 12px 14px;
+  gap: 10px;
+  border-radius: 14px;
+}
+html.hs-anim.hs-m .hs-call small {
+  font-size: 9px;
+}
+html.hs-anim.hs-m .hs-call-name {
+  font-size: 16px;
+}
+html.hs-anim.hs-m .hs-call-desc {
+  font-size: 11.5px;
+}
+
+/* 07 portfolio */
+html.hs-anim.hs-m .hs-pf-head {
+  left: 24px;
+  top: 20px;
+  width: calc(382px + var(--hs-dx));
+  flex-wrap: wrap;
+  gap: 10px;
+}
+html.hs-anim.hs-m .hs-portfolio .hs-h2 {
+  font-size: 30px;
+}
+html.hs-anim.hs-m .hs-pf-cnt {
+  width: 100%;
+  margin-left: 0;
+  padding-bottom: 0;
+  font-size: 13px;
+  gap: 10px;
+}
+html.hs-anim.hs-m .hs-pf-ln {
+  width: 120px;
+}
+html.hs-anim.hs-m .hs-pf-all {
+  margin-left: auto;
+  font-size: 13px;
+}
+html.hs-anim.hs-m .hs-pf-track {
+  top: 196px;
+  gap: 18px;
+}
+html.hs-anim.hs-m .hs-pc {
+  width: 340px;
+  height: 560px;
+  border-radius: 22px;
+}
+html.hs-anim.hs-m .hs-pc-top {
+  height: 250px;
+}
+html.hs-anim.hs-m .hs-pc-body {
+  padding: 18px 20px;
+}
+html.hs-anim.hs-m .hs-pc h3 {
+  font-size: 22px;
+}
+html.hs-anim.hs-m .hs-pc h3 a:last-child {
+  font-size: 13px;
+}
+html.hs-anim.hs-m .hs-pc p {
+  font-size: 14px;
+}
+
+/* 08 reviews */
+html.hs-anim.hs-m .hs-t-eyebrow {
+  left: 24px;
+  top: 24px;
+}
+html.hs-anim.hs-m .hs-t-h2 {
+  left: 24px;
+  top: 50px;
+  width: calc(290px + var(--hs-dx));
+  font-size: 34px;
+}
+html.hs-anim.hs-m .hs-t-meta {
+  left: 24px;
+  top: 150px;
+  width: 230px;
+  gap: 12px;
+}
+html.hs-anim.hs-m .hs-t-count {
+  font-size: 14px;
+}
+html.hs-anim.hs-m .hs-t-count b {
+  font-size: 26px;
+}
+html.hs-anim.hs-m .hs-t-bar {
+  max-width: 100px;
+  height: 3px;
+}
+html.hs-anim.hs-m .hs-tcards {
+  top: 210px;
+  gap: 16px;
+}
+html.hs-anim.hs-m .hs-tcard {
+  width: 360px;
+  height: 540px;
+  padding: 24px 22px 20px;
+  border-radius: 22px;
+}
+html.hs-anim.hs-m .hs-t-proj {
+  font-size: 13px;
+  padding: 6px 12px;
+  gap: 8px;
+}
+html.hs-anim.hs-m .hs-t-proj i {
+  width: 8px;
+  height: 8px;
+}
+html.hs-anim.hs-m .hs-t-kind {
+  font-size: 11.5px;
+}
+html.hs-anim.hs-m .hs-tcard .hs-q {
+  font-size: 64px;
+  height: 30px;
+  margin-top: 14px;
+}
+html.hs-anim.hs-m .hs-tcard blockquote {
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+html.hs-anim.hs-m .hs-tcard .hs-who {
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+}
+html.hs-anim.hs-m .hs-tcard .hs-who .hs-av {
+  width: 44px;
+  height: 44px;
+  font-size: 15px;
+}
+html.hs-anim.hs-m .hs-who-txt b {
+  font-size: 16px;
+}
+html.hs-anim.hs-m .hs-who-txt span {
+  font-size: 12.5px;
+}
+html.hs-anim.hs-m .hs-t-link {
+  font-size: 12.5px;
+}
+
+/* 09 values + CTA */
+html.hs-anim.hs-m .hs-v-eyebrow {
+  left: calc(215px + var(--hs-dx) / 2);
+  top: 40px;
+}
+html.hs-anim.hs-m .hs-val {
+  width: 185px;
+  height: 124px;
+  padding: 14px;
+  gap: 8px;
+  flex-direction: column;
+  border-radius: 16px;
+}
+html.hs-anim.hs-m .hs-val-ic {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+html.hs-anim.hs-m .hs-val-ic svg {
+  width: 20px;
+  height: 20px;
+}
+html.hs-anim.hs-m .hs-val h3 {
+  font-size: 15px;
+}
+html.hs-anim.hs-m .hs-val p {
+  font-size: 11.5px;
+  margin-top: 2px !important;
+}
+html.hs-anim.hs-m .hs-ring {
+  left: calc(215px + var(--hs-dx) / 2);
+  top: 250px;
+}
+html.hs-anim.hs-m .hs-cta {
+  top: 410px;
+  padding: 0 24px;
+}
+html.hs-anim.hs-m .hs-wm {
+  font-size: 13px;
+}
+html.hs-anim.hs-m .hs-cta-h2 {
+  font-size: 40px;
+  margin-top: 14px !important;
+}
+html.hs-anim.hs-m .hs-cta .hs-tagline {
+  margin-top: 16px !important;
+}
+
+/* keep the chain from showing through the headline on phones */
+html.hs-anim.hs-m .hs-chain-head::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -40px;
+  right: -40px;
+  top: -40px;
+  bottom: -46px;
+  background: linear-gradient(180deg, #041138 0%, #041138 78%, rgba(4, 17, 56, 0) 100%);
+}
+html.hs-anim.hs-m .hs-chain-head {
+  z-index: 2;
+}
