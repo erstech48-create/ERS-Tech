@@ -1,24 +1,19 @@
-import React, { useRef } from "react";
-import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useScene, fitCanvas, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 import { CubeSVG } from "./Cube";
-import ClientImg from "@/../public/assets/icons/CLIENT-IMG.png";
-import Client2 from "@/../public/assets/icons/client-2-opt.webp";
+import { REVIEWS } from "@/data/reviews";
 
-const TESTIMONIALS = [
-  {
-    name: "Arie Amir",
-    role: "Onboarding Officer, Fintech Cashier",
-    img: ClientImg,
-    text: "My name is Arie Amir and I am the onboarding officer and customer support at FINTECHCASHIER, & as such appreciate ERS TECH's expertise in developing & maintaining sophisticated APIs for our LATAM Fintech markets. They maintain high professional responsiveness & cooperation to guarantee our business success in those markets. I warmly recommend a partnership with ERS TECH for all potential customers.",
-  },
-  {
-    name: "Faiqa Anwer",
-    role: "Owner, LiftSplit App",
-    img: Client2,
-    text: "My name is Faiqa, and I am the founder of the LiftSplit app. ERS TECH has developed an application for my business that was top-notch in quality. I am satisfied with the company's services as their team is highly cooperative and expert in their domain. Highly recommended!",
-  },
-];
+
+const initials = (n) =>
+  n
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+const CARD_W = 580;
+const CARD_GAP = 32;
 const BLOBS = [
   { c: [46, 102, 246], x: 0.25, y: 0.3, r: 0.75, sp: 0.21 },
   { c: [38, 175, 237], x: 0.75, y: 0.35, r: 0.65, sp: 0.17 },
@@ -92,11 +87,37 @@ export default function TestimonialsScene() {
   const card = useRef(null);
   const eyebrow = useRef(null);
   const h2 = useRef(null);
+  const meta = useRef(null);
+  const track = useRef(null);
   const tcards = useRef([]);
+  const cnt = useRef(null);
+  const bar = useRef(null);
+  const [idx, setIdx] = useState(0); // static mode (mobile) carousel position
+
+  // Static mode: keep the counter in sync with the swipe position
+  useEffect(() => {
+    const tr = track.current;
+    if (!tr) return undefined;
+    const onScroll = () => {
+      if (document.documentElement.classList.contains("hs-anim")) return;
+      const first = tr.children[0];
+      const step = first ? first.getBoundingClientRect().width + 16 : 1;
+      setIdx(Math.max(0, Math.min(REVIEWS.length - 1, Math.round(tr.scrollLeft / step))));
+    };
+    tr.addEventListener("scroll", onScroll, { passive: true });
+    return () => tr.removeEventListener("scroll", onScroll);
+  }, []);
+  const go = (d) => {
+    const tr = track.current;
+    if (!tr) return;
+    const first = tr.children[0];
+    const step = first ? first.getBoundingClientRect().width + 16 : 300;
+    tr.scrollBy({ left: d * step, behavior: "smooth" });
+  };
 
   useScene(ref, {
     name: "testimonials",
-    length: 2.8,
+    length: 3.8,
     render(p, t, mode) {
       if (mode !== "anim") return;
       const f = eio(seg(p, 0, 0.5));
@@ -122,10 +143,22 @@ export default function TestimonialsScene() {
       css(card.current, {
         transform: `translate(${X}px, ${Y + Math.sin(t * 2) * 6}px) perspective(1400px) rotateX(${RX}deg) rotateY(${RY}deg) rotateZ(${RZ}deg) scale(${Sc})`,
       });
-      const k = [0, 1, 2, 3].map((i) => eo(seg(p, 0.5 + i * 0.06, 0.66 + i * 0.06)));
+      const k = [0, 1, 2].map((i) => eo(seg(p, 0.5 + i * 0.05, 0.64 + i * 0.05)));
       rv(eyebrow.current, k[0], 20);
       rv(h2.current, k[1], 40);
-      tcards.current.forEach((n, i) => rv(n, k[2 + i], 60));
+      rv(meta.current, k[2], 20);
+      // cards rise in, then the track slides through all reviews
+      const total = REVIEWS.length * (CARD_W + CARD_GAP) - CARD_GAP;
+      const slide = eio(seg(p, 0.64, 0.97));
+      const x = lerp(140, Math.min(140, ax(1780, 1) - total), slide);
+      css(track.current, { transform: `translateX(${x}px)` });
+      tcards.current.forEach((n, i) => {
+        const ki = eo(seg(p, 0.56 + Math.min(i, 3) * 0.03, 0.68 + Math.min(i, 3) * 0.03));
+        rv(n, ki, 70);
+      });
+      const shown = Math.min(REVIEWS.length, Math.max(1, Math.round(slide * (REVIEWS.length - 1)) + 1));
+      if (cnt.current) cnt.current.textContent = String(shown).padStart(2, "0");
+      css(bar.current, { transform: `scaleX(${0.125 + slide * 0.875})` });
     },
   });
 
@@ -136,19 +169,47 @@ export default function TestimonialsScene() {
       <div className="hs-stage">
         <div ref={eyebrow} className="hs-eyebrow hs-t-eyebrow">CLIENT STORIES</div>
         <h2 ref={h2} className="hs-h2 hs-t-h2">
-          Trusted by businesses <em className="hs-grad">across the globe.</em>
+          What our <em className="hs-grad">clients say.</em>
         </h2>
-        <div className="hs-tcards">
-          {TESTIMONIALS.map((x, i) => (
+        <div ref={meta} className="hs-t-meta">
+          <span className="hs-t-count">
+            <b ref={cnt}>{String(idx + 1).padStart(2, "0")}</b> / {String(REVIEWS.length).padStart(2, "0")}
+          </span>
+          <span className="hs-t-bar">
+            <i ref={bar} style={{ transform: `scaleX(${(idx + 1) / REVIEWS.length})` }} />
+          </span>
+          <span className="hs-t-nav">
+            <button type="button" onClick={() => go(-1)} aria-label="Previous review" disabled={idx === 0}>
+              ←
+            </button>
+            <button type="button" onClick={() => go(1)} aria-label="Next review" disabled={idx === REVIEWS.length - 1}>
+              →
+            </button>
+          </span>
+        </div>
+        <div ref={track} className="hs-tcards">
+          {REVIEWS.map((x, i) => (
             <figure key={x.name} ref={(n) => (tcards.current[i] = n)} className="hs-tcard">
+              <div className="hs-t-top">
+                <span className="hs-t-proj">
+                  <i />
+                  {x.project}
+                </span>
+                <span className="hs-t-kind">{x.kind}</span>
+              </div>
               <div className="hs-q" aria-hidden="true">“</div>
               <blockquote>{x.text}</blockquote>
               <figcaption className="hs-who">
-                <Image src={x.img} alt={x.name} width={58} height={58} />
-                <div>
+                <span className="hs-av" aria-hidden="true">
+                  {initials(x.name)}
+                </span>
+                <span className="hs-who-txt">
                   <b>{x.name}</b>
-                  <span>{x.role}</span>
-                </div>
+                  <span>Client · {x.project}</span>
+                </span>
+                <Link href={x.href} className="hs-t-link" aria-label={`Read the ${x.project} case study`}>
+                  Case study →
+                </Link>
               </figcaption>
             </figure>
           ))}
