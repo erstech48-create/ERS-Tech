@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useScene, seg, eo, eio, lerp, rv, css } from "./engine";
+import { useScene, ax, seg, eo, eio, lerp, css } from "./engine";
 
 const STEPS = [
   ["STEP 01", "UI/UX Design", "Wireframes, user flows and design systems"],
@@ -102,7 +102,7 @@ export default function BuildScene() {
 
   useScene(ref, {
     name: "build",
-    length: 2.4,
+    length: 3.2,
     render(p, t, mode) {
       if (mode !== "anim") return;
       const R = r.current;
@@ -117,14 +117,14 @@ export default function BuildScene() {
         const a = (i / 14) * Math.PI * 2;
         const d = eo(ex) * lerp(160, 320, ((i * 7) % 5) / 5);
         css(s, {
-          left: `${1300 - 13 + Math.cos(a) * d}px`,
+          left: `${ax(1300, 0.7) - 13 + Math.cos(a) * d}px`,
           top: `${464 - 13 + Math.sin(a) * d}px`,
           opacity: ex > 0 ? 1 - seg(p, 0.15, 0.24) : 0,
           transform: `rotate(${ex * 300 + i * 20}deg) scale(${1 - ex * 0.4})`,
         });
       });
 
-      const dx = 930;
+      const dx = ax(930, 0.7);
       const dy = lerp(-640, 204, eo(seg(p, 0.13, 0.33)));
       const on = seg(p, 0.12, 0.14);
       css(R.dash, { left: `${dx}px`, top: `${dy}px`, opacity: on });
@@ -145,7 +145,7 @@ export default function BuildScene() {
 
       const ph = eo(seg(p, 0.48, 0.62));
       css(R.phone, {
-        left: `${lerp(560, 850, ph)}px`,
+        left: `${lerp(dx - 370, dx - 80, ph)}px`,
         top: `${lerp(1000, 354, ph)}px`,
         transform: `rotate(${lerp(-14, -4, ph)}deg)`,
         opacity: seg(p, 0.48, 0.5),

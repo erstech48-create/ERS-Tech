@@ -324,7 +324,7 @@ function Header() {
                 <li className="menu-item-has-children">
                   <Link
                     href="/services#contact"
-                    className="hire_team inline-flex items-center justify-center text-center leading-none"
+                    className="hire_team"
                     onClick={(e) => {
                       if (router.pathname === "/services") {
                         e.preventDefault();

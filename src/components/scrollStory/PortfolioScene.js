@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useScene, seg, eio, lerp, rv, css } from "./engine";
+import { useScene, ax, seg, eio, lerp, rv, css } from "./engine";
 import Aconomy from "@/../public/assets/projects/aconomy.webp";
 import BCCOIN from "@/../public/assets/projects/bccoin.webp";
 import Focusmonk from "@/../public/assets/projects/focusmonk.webp";
@@ -30,20 +30,20 @@ export default function PortfolioScene() {
 
   useScene(ref, {
     name: "portfolio",
-    length: 2.6,
+    length: 3.4,
     wipeIn: true,
     render(p, t, mode) {
       if (mode !== "anim") return;
       rv(head.current, 1, 0);
       const k = eio(seg(p, 0.06, 0.88));
       const total = PROJECTS.length * (CARD + GAP) - GAP;
-      const x = lerp(140, 1780 - total, k);
+      const x = lerp(140, ax(1780, 1) - total, k);
       css(track.current, { transform: `translateX(${x}px)` });
       css(ln.current, { width: `${16.6 + k * 83.4}%` });
       if (cnt.current) cnt.current.textContent = `0${1 + Math.min(5, Math.floor(k * 6))}`;
       cards.current.forEach((c, i) => {
         const cx = x + i * (CARD + GAP) + CARD / 2;
-        const d = Math.min(Math.abs(cx - 960) / 1200, 1);
+        const d = Math.min(Math.abs(cx - ax(960, 0.5)) / 1200, 1);
         css(c, { transform: `translateY(${d * 30}px)` });
       });
     },

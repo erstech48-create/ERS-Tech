@@ -42,18 +42,18 @@ export function CubeSVG({ className = "", style }) {
 
 // Keyframes: [scene, progress, x, y, size, opacity] in stage coordinates.
 const KF = [
-  ["hero", 0.0, 960, 424, 40, 0],
-  ["hero", 0.52, 960, 424, 60, 0],
-  ["hero", 0.62, 960, 424, 200, 1],
-  ["hero", 1.0, 960, 424, 200, 1],
-  ["trust", 0.04, 1640, 250, 150, 1],
-  ["trust", 1.0, 1640, 250, 150, 1],
-  ["build", 0.0, 1300, 464, 190, 1],
-  ["build", 0.06, 1300, 464, 200, 1],
-  ["build", 0.13, 1300, 464, 300, 0],
-  ["values", 0.36, 960, 234, 60, 0],
-  ["values", 0.5, 960, 234, 180, 1],
-  ["values", 1.0, 960, 234, 180, 1],
+  ["hero", 0.0, 960, 424, 40, 0, 0.5],
+  ["hero", 0.52, 960, 424, 60, 0, 0.5],
+  ["hero", 0.62, 960, 424, 200, 1, 0.5],
+  ["hero", 1.0, 960, 424, 200, 1, 0.5],
+  ["trust", 0.04, 1660, 210, 150, 1, 1],
+  ["trust", 1.0, 1660, 210, 150, 1, 1],
+  ["build", 0.0, 1300, 464, 190, 1, 0.7],
+  ["build", 0.06, 1300, 464, 200, 1, 0.7],
+  ["build", 0.13, 1300, 464, 300, 0, 0.7],
+  ["values", 0.36, 960, 234, 60, 0, 0.5],
+  ["values", 0.5, 960, 234, 180, 1, 0.5],
+  ["values", 1.0, 960, 234, 180, 1, 0.5],
 ];
 
 /** Fixed cube that travels between scenes on desktop. */
@@ -63,29 +63,34 @@ export default function TravelCube() {
     const node = ref.current;
     if (!node || prefersReducedMotion()) return undefined;
     const mq = window.matchMedia(DESKTOP_MQ);
-    return addTicker((t) => {
+    let sy0 = window.scrollY;
+    return addTicker((t, dt) => {
       if (!mq.matches || !document.documentElement.classList.contains("hs-anim")) {
         node.style.display = "none";
         return;
       }
+      const m0 = getMetrics();
       const pts = KF.map((k) => [scenePos(k[0], k[1]), ...k.slice(2)]);
       if (pts.some((p) => p[0] == null)) {
         node.style.display = "none";
         return;
       }
-      const y = window.scrollY;
+      const yRaw = window.scrollY;
+      sy0 += (yRaw - sy0) * (1 - Math.exp(-dt * 7));
+      if (Math.abs(yRaw - sy0) < 0.5) sy0 = yRaw;
+      const y = sy0;
       let i = 0;
       while (i < pts.length - 2 && y >= pts[i + 1][0]) i++;
       const a = pts[i];
       const b = pts[i + 1];
       const k = eio(clamp((y - a[0]) / Math.max(1, b[0] - a[0])));
-      const x = lerp(a[1], b[1], k);
+      const x = lerp(a[1] + m0.dx * a[5], b[1] + m0.dx * b[5], k);
       let sy = lerp(a[2], b[2], k);
       const size = lerp(a[3], b[3], k);
       const o = lerp(a[4], b[4], k);
       // after the last keyframe the cube scrolls away with the page
       const endPos = pts[pts.length - 1][0];
-      const after = Math.max(0, y - endPos);
+      const after = Math.max(0, yRaw - endPos);
       const m = getMetrics();
       const [vx, vy] = toView(x, sy);
       const px = size * m.s;

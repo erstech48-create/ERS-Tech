@@ -96,31 +96,22 @@ button {
 }
 
 .hire_team {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  padding: 0 1.6rem !important;
-  height: 42px !important;
-  min-width: 135px !important;
-  width: auto !important;
-  line-height: 1 !important;
-  border-radius: 50px !important;
+  padding: 0.5rem 2em !important;
+  text-transform: none !important;
   background: linear-gradient(to right, #29bcf1, #0f53ce) !important;
   color: #fff !important;
-  font-size: 15px !important;
-  font-weight: 500 !important;
-  font-family: inherit !important;
-  text-transform: none !important;
-  white-space: nowrap !important;
-  box-shadow: 0 4px 14px rgba(41, 188, 241, 0.35) !important;
-  transition: all 0.3s ease !important;
+  width: 135px !important;
+  border-radius: 50px !important;
+  font-size: 25px;
+  font-weight: 500;
+  font-family: inherit;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px,
+    rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
 }
 .hire_team:hover {
   background: white !important;
   color: #29bcf1 !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
-  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .send-msg-btn {
@@ -550,12 +541,7 @@ button {
   }
 
   .header .menu > ul > li .hire_team {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 42px !important;
-    line-height: 1 !important;
-    margin: 1rem auto !important;
+    display: unset !important;
   }
 
   .header .menu > ul > li > a i.ion {

@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import Link from "next/link";
 import Icon from "./icons";
 import { CubeSVG } from "./Cube";
-import { useScene, seg, eio, eo, lerp, rv, css } from "./engine";
+import { useScene, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 
 const VALUES = [
   ["bulb", "Innovation", "Creative solutions for modern challenges."],
@@ -23,7 +23,7 @@ export default function ValuesCtaScene() {
 
   useScene(ref, {
     name: "values",
-    length: 1.7,
+    length: 2.2,
     render(p, t, mode) {
       if (mode !== "anim") return;
       const out = eio(seg(p, 0.34, 0.46));
@@ -35,7 +35,7 @@ export default function ValuesCtaScene() {
         const col = i % 3;
         const row = Math.floor(i / 3);
         const k = eo(seg(p, 0.02 + i * 0.035, 0.16 + i * 0.035));
-        const X = lerp(330 + col * 440, 750, out);
+        const X = lerp(ax(330 + col * 440, 0.5), ax(750, 0.5), out);
         const Y = lerp(204 + row * 230, 134, out);
         css(v, {
           left: `${X}px`,

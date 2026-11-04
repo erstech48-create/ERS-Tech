@@ -1,6 +1,6 @@
 // Shared engine for the home page scroll story.
 // Each scene is a 100vh section that gets pinned on desktop and driven by a
-// render(p, t, mode) function, where p = scroll progress (0..1) of the pin.
+// render(p, t, mode) function, where p = eased scroll progress (0..1) of the pin.
 import { useEffect } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 
@@ -10,15 +10,24 @@ export const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3)
 export const eo = (x) => 1 - Math.pow(1 - x, 3);
 export const lerp = (a, b, t) => a + (b - a) * t;
 
-export const STAGE_W = 1920;
-export const STAGE_H = 984;
+export const STAGE_W = 1920; // design width
+export const STAGE_H = 984; // design height (viewport minus navbar)
+const MAX_STAGE_W = 2500; // wider than this, the stage is centred again
 export const DESKTOP_MQ = "(min-width: 1024px)";
+// Higher = scroll animations follow the scrollbar more tightly.
+const FOLLOW = 7;
 
-/** Set inline styles and mark the node so they can be cleared on teardown. */
+/* ---------------- inline style helpers (tracked so they can be undone) ---------------- */
+const kebab = (k) => k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+/** Set inline styles; only the properties set here are removed on teardown. */
 export function css(node, styles) {
   if (!node) return;
+  if (!node.__hsKeys) node.__hsKeys = new Set();
+  Object.keys(styles).forEach((k) => {
+    node.__hsKeys.add(k);
+    node.style[k] = styles[k];
+  });
   node.dataset.hs = "1";
-  Object.assign(node.style, styles);
 }
 /** Fade + slide helper: k = 0 hidden, 1 visible. */
 export function rv(node, k, dy = 40, dx = 0, extra = "") {
@@ -27,27 +36,41 @@ export function rv(node, k, dy = 40, dx = 0, extra = "") {
     transform: `translate(${dx * (1 - k)}px, ${dy * (1 - k)}px) ${extra}`,
   });
 }
+function clearNode(n) {
+  if (n.__hsKeys) {
+    n.__hsKeys.forEach((k) => n.style.removeProperty(kebab(k)));
+    n.__hsKeys = null;
+  }
+  delete n.dataset.hs;
+}
+function clearMarked(root) {
+  root.querySelectorAll("[data-hs]").forEach(clearNode);
+  if (root.dataset.hs) clearNode(root);
+}
 
 /* ---------------- stage metrics ---------------- */
-let metrics = { s: 1, ox: 0, oy: 0, W: 1920, H: 1080, nav: 88 };
+// s  = scale, sw = stage width in design px (>= 1920 on wide screens),
+// dx = sw - 1920 (extra width), ox/oy = stage offset in the viewport.
+let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 88 };
 export const getMetrics = () => metrics;
 
 function updateMetrics() {
   if (typeof window === "undefined") return;
   const W = window.innerWidth;
   const H = window.innerHeight;
-  const navVar = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--nav-h")
-  );
+  const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
   const nav = clamp(isNaN(navVar) ? 88 : navVar, 56, 130);
   const s = Math.min(W / STAGE_W, (H - nav) / STAGE_H);
-  const ox = (W - STAGE_W * s) / 2;
+  const sw = clamp(W / s, STAGE_W, MAX_STAGE_W);
+  const ox = (W - sw * s) / 2;
   const oy = nav + (H - nav - STAGE_H * s) / 2;
-  metrics = { s, ox, oy, W, H, nav };
+  metrics = { s, sw, dx: sw - STAGE_W, ox, oy, W, H, nav };
   const r = document.documentElement.style;
   r.setProperty("--hs-scale", String(s));
   r.setProperty("--hs-ox", `${ox}px`);
   r.setProperty("--hs-oy", `${oy}px`);
+  r.setProperty("--hs-sw", `${sw}px`);
+  r.setProperty("--hs-dx", `${sw - STAGE_W}px`);
 }
 
 let metricsBound = false;
@@ -58,6 +81,9 @@ function bindMetrics() {
   window.addEventListener("resize", updateMetrics);
   ScrollTrigger.addEventListener("refreshInit", updateMetrics);
 }
+
+/** x in design px anchored left (f=0), centre (f=0.5) or right (f=1). */
+export const ax = (x, f = 0) => x + metrics.dx * f;
 
 /* ---------------- animated-mode flag on <html> ---------------- */
 let animUsers = 0;
@@ -75,12 +101,15 @@ export const registry = {}; // name -> { st, len }
 const tickers = new Set();
 let tickerBound = false;
 const T0 = typeof performance !== "undefined" ? performance.now() : 0;
+let lastT = 0;
 function bindTicker() {
   if (tickerBound) return;
   tickerBound = true;
   gsap.ticker.add(() => {
     const t = (performance.now() - T0) / 1000;
-    tickers.forEach((fn) => fn(t));
+    const dt = Math.min(0.1, Math.max(0, t - lastT));
+    lastT = t;
+    tickers.forEach((fn) => fn(t, dt));
   });
 }
 export function addTicker(fn) {
@@ -94,17 +123,6 @@ export function scenePos(name, p) {
   const r = registry[name];
   if (!r) return null;
   return r.st.start + p * r.len * window.innerHeight;
-}
-
-function clearMarked(root) {
-  root.querySelectorAll("[data-hs]").forEach((n) => {
-    n.removeAttribute("style");
-    delete n.dataset.hs;
-  });
-  if (root.dataset.hs) {
-    root.removeAttribute("style");
-    delete root.dataset.hs;
-  }
 }
 
 /**
@@ -131,10 +149,9 @@ export function useScene(ref, opts) {
       updateMetrics();
       const len = opts.length;
       const tail = opts.tail || 0;
-      let progress = 0;
-      const lead = opts.wipeIn
-        ? el.parentElement?.querySelector(":scope > .hs-wipe-lead")
-        : null;
+      let target = 0;
+      let shown = 0;
+      const lead = opts.wipeIn ? el.parentElement?.querySelector(":scope > .hs-wipe-lead") : null;
 
       const st = ScrollTrigger.create({
         trigger: el,
@@ -145,7 +162,11 @@ export function useScene(ref, opts) {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          progress = clamp((self.progress * (len + tail)) / len);
+          target = clamp((self.progress * (len + tail)) / len);
+        },
+        onRefresh: (self) => {
+          target = clamp((self.progress * (len + tail)) / len);
+          shown = target;
         },
       });
       registry[opts.name] = { st, len };
@@ -155,8 +176,7 @@ export function useScene(ref, opts) {
         const setClip = (q) => {
           const a = eio(clamp(q * 1.15));
           const b = eio(clamp(q * 1.15 - 0.15));
-          const shape = (k) =>
-            k >= 1 ? "none" : `ellipse(${k * 110}% ${k * 160}% at 50% 125%)`;
+          const shape = (k) => (k >= 1 ? "none" : `ellipse(${k * 110}% ${k * 160}% at 50% 125%)`);
           if (lead) css(lead, { clipPath: shape(a), opacity: q > 0 && q < 1 ? 1 : 0 });
           css(el, { clipPath: shape(b) });
         };
@@ -172,11 +192,17 @@ export function useScene(ref, opts) {
         });
       }
 
-      const remove = addTicker((t) => {
+      const remove = addTicker((t, dt) => {
         const y = window.scrollY;
         const H = window.innerHeight;
-        if (y < st.start - H * 1.05 || y > st.end + H * 1.05) return;
-        opts.render(progress, t, "anim", el);
+        if (y < st.start - H * 1.05 || y > st.end + H * 1.05) {
+          shown = target;
+          return;
+        }
+        // ease the shown progress toward the scroll target (frame-rate independent)
+        shown += (target - shown) * (1 - Math.exp(-dt * FOLLOW));
+        if (Math.abs(target - shown) < 0.0005) shown = target;
+        opts.render(shown, t, "anim", el);
       });
       opts.render(0, 0, "anim", el);
 

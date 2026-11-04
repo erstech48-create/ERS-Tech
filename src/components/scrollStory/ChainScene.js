@@ -1,40 +1,83 @@
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useScene, fitCanvas, getMetrics, toView, seg, eio, eo, lerp, rv, css } from "./engine";
+import Image from "next/image";
+import { useScene, fitCanvas, getMetrics, toView, ax, seg, eio, eo, lerp, rv, css } from "./engine";
+import Aconomy from "@/../public/assets/projects/aconomy.webp";
+import BCCOIN from "@/../public/assets/projects/bccoin.webp";
+import ABot from "@/../public/assets/projects/a-bot.webp";
 
-const NB = 26;
-const PITCH = 250;
+const NB = 22;
+const PITCH = 300; // block 220 + bridge 80
 const HL = {
-  9: ["ACONOMY", "Exchange, payments & debit cards", "/portfolio/aconomy"],
-  12: ["BLACKCARDCOIN", "BCCOIN staking & crypto card", "/portfolio/bccoin"],
-  15: ["A-BOT", "AI crypto agent on Telegram", "/portfolio/a-bot"],
+  10: { name: "Aconomy", desc: "Crypto exchange, payments & debit cards", href: "/portfolio/aconomy", img: Aconomy, tag: "EXCHANGE" },
+  12: { name: "BlackCardCoin", desc: "BCCOIN staking & personal crypto card", href: "/portfolio/bccoin", img: BCCOIN, tag: "STAKING" },
+  14: { name: "A-Bot", desc: "AI crypto agent on Telegram with AML checks", href: "/portfolio/a-bot", img: ABot, tag: "AI AGENT" },
 };
-const COLS = [["#2e66f6", "#0d3aa8"], ["#26AFED", "#1272c9"], ["#5B4BFF", "#2a1fa8"], ["#13C2C2", "#0b6e8f"], ["#2e66f6", "#26AFED"]];
-const hash = (i) => `0x${((i * 2654435761) >>> 0).toString(16).slice(0, 4)}…${((i * 40503) >>> 0).toString(16).slice(0, 3)}`;
-const SP = Array.from({ length: 520 }, (_, i) => ({
+const TONES = ["blue", "cyan", "violet", "teal"];
+const hash = (i) => `0x${((i * 2654435761) >>> 0).toString(16).padStart(8, "0").slice(0, 4)}…${((i * 40503 + 7) >>> 0).toString(16).slice(-4)}`;
+const BARS = (i) => Array.from({ length: 9 }, (_, k) => 30 + (((i + 3) * (k + 5) * 37) % 70));
+
+/* background: drifting constellation + upward data particles hugging the chain */
+const NODES = Array.from({ length: 70 }, (_, i) => ({
   x: ((i * 9301 + 49297) % 233280) / 233280,
   y: ((i * 7919 + 12345) % 104729) / 104729,
-  v: 0.4 + ((i * 31) % 100) / 100,
-  w: ((i * 17) % 100) / 100,
+  v: 0.2 + ((i * 31) % 100) / 300,
+}));
+const PARTS = Array.from({ length: 160 }, (_, i) => ({
+  side: i % 2 ? 1 : -1,
+  off: ((i * 37) % 100) / 100,
+  y: ((i * 7919) % 1000) / 1000,
+  v: 0.5 + ((i * 13) % 10) / 10,
+  s: 1 + ((i * 17) % 10) / 6,
 }));
 
-function drawSea(g, w, h, t, cx, spread, speed) {
-  const gr = g.createRadialGradient(cx, h / 2, 0, cx, h / 2, Math.max(w, h) * 0.7);
-  gr.addColorStop(0, "#0a2a78");
-  gr.addColorStop(1, "#020a24");
+function drawBg(g, w, h, t, cx, spread, speed) {
+  let gr = g.createRadialGradient(cx, h * 0.5, 0, cx, h * 0.5, Math.max(w, h) * 0.75);
+  gr.addColorStop(0, "#0b2c7a");
+  gr.addColorStop(0.45, "#061844");
+  gr.addColorStop(1, "#020818");
   g.fillStyle = gr;
   g.fillRect(0, 0, w, h);
-  for (const q of SP) {
-    const side = q.w < 0.5 ? -1 : 1;
-    const off = Math.pow(q.x, 2.2) * spread * 2.2 + spread * 0.25;
-    const x = cx + side * off + Math.sin(q.y * 20 + t) * 12;
-    const y = ((q.y * h + t * q.v * 260 * speed) % (h + 80)) - 40;
-    g.strokeStyle = `rgba(150,210,255,${0.08 + 0.45 * (1 - q.x)})`;
-    g.lineWidth = 1 + q.w * 1.5;
-    g.beginPath();
-    g.moveTo(x, y);
-    g.lineTo(x + side * 4, y - 20 - q.v * 30);
-    g.stroke();
+  // soft colour glows
+  [[0.15, 0.25, "rgba(110,75,255,0.18)"], [0.85, 0.75, "rgba(38,175,237,0.16)"]].forEach(([x, y, c], k) => {
+    const px = w * x + Math.sin(t * 0.2 + k) * 60;
+    const py = h * y + Math.cos(t * 0.17 + k) * 40;
+    const r = Math.max(w, h) * 0.45;
+    const gg = g.createRadialGradient(px, py, 0, px, py, r);
+    gg.addColorStop(0, c);
+    gg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gg;
+    g.fillRect(0, 0, w, h);
+  });
+  // constellation
+  const pts = NODES.map((n) => [((n.x + t * 0.004 * n.v) % 1) * w, ((n.y + Math.sin(t * 0.1 + n.x * 6) * 0.01) % 1) * h]);
+  g.lineWidth = 1;
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      const dx = pts[i][0] - pts[j][0];
+      const dy = pts[i][1] - pts[j][1];
+      const d = Math.hypot(dx, dy);
+      if (d < 150) {
+        g.strokeStyle = `rgba(120,180,255,${0.12 * (1 - d / 150)})`;
+        g.beginPath();
+        g.moveTo(pts[i][0], pts[i][1]);
+        g.lineTo(pts[j][0], pts[j][1]);
+        g.stroke();
+      }
+    }
+  }
+  g.fillStyle = "rgba(160,210,255,0.5)";
+  pts.forEach(([x, y]) => g.fillRect(x - 1, y - 1, 2, 2));
+  // data particles flowing up beside the chain
+  for (const q of PARTS) {
+    const x = cx + q.side * (spread * 0.35 + q.off * spread);
+    const y = h - (((q.y * h + t * q.v * 90 * speed) % (h + 60)) - 30);
+    const a = 0.25 + 0.6 * (1 - q.off);
+    const tg = g.createLinearGradient(x, y, x, y + 26 * q.s);
+    tg.addColorStop(0, `rgba(170,230,255,${a})`);
+    tg.addColorStop(1, "rgba(170,230,255,0)");
+    g.fillStyle = tg;
+    g.fillRect(x - q.s / 2, y, q.s, 26 * q.s);
   }
 }
 
@@ -52,7 +95,7 @@ export default function ChainScene() {
 
   useScene(ref, {
     name: "chain",
-    length: 2.4,
+    length: 3.2,
     tail: 1,
     ambient: true,
     render(p, t, mode) {
@@ -60,32 +103,31 @@ export default function ChainScene() {
       if (!c) return;
       const { g, w, h } = fitCanvas(c);
       if (mode !== "anim") {
-        drawSea(g, w, h, t, w / 2, Math.min(w, 900) * 0.25, 0.7);
+        drawBg(g, w, h, t, w / 2, Math.min(w, 900) * 0.4, 0.8);
         return;
       }
       const m = getMetrics();
-      const s = lerp(2.5, 0.5, eio(seg(p, 0, 0.55)));
-      const endC = 12 * PITCH + 90;
-      const cy = endC - 520 * (1 - eo(seg(p, 0, 0.72)));
+      const s = lerp(2.2, 0.5, eio(seg(p, 0, 0.55)));
+      const endC = 12 * PITCH + 110;
+      const cy = endC - 600 * (1 - eo(seg(p, 0, 0.72)));
       css(chain.current, { transform: `scale(${s}) translateY(${-cy}px)` });
-      const [vcx] = toView(960, 0);
-      drawSea(g, w, h, t, vcx, lerp(140, 520, eio(seg(p, 0, 0.55))) * m.s, 0.6 + s * 0.4);
+      const [vcx] = toView(ax(960, 0.5), 0);
+      drawBg(g, w, h, t, vcx, lerp(260, 380, eio(seg(p, 0, 0.55))) * m.s, 0.6 + s * 0.4);
 
       ["h1", "h2", "h3"].forEach((k, i) => rv(r.current[k], eo(seg(p, 0.3 + i * 0.06, 0.46 + i * 0.06)), 60));
       rv(r.current.eyebrow, eo(seg(p, 0.25, 0.38)), 20);
       rv(r.current.sub, eo(seg(p, 0.5, 0.62)), 20);
-      blocks.current.forEach((b, i) => {
-        if (!b) return;
-        const on = HL[i] && p > 0.62;
-        css(b, { boxShadow: on ? `0 0 ${60 * seg(p, 0.62, 0.7)}px rgba(38,175,237,.9)` : "none" });
-      });
+      rv(r.current.stats, eo(seg(p, 0.56, 0.68)), 20);
+      const hlOn = seg(p, 0.6, 0.7);
+      blocks.current.forEach((b, i) => b && b.classList.toggle("hs-lit", !!HL[i] && hlOn > 0.5));
       Object.keys(HL).forEach((key) => {
         const i = +key;
-        const k = eo(seg(p, 0.62 + (i - 9) * 0.015, 0.74 + (i - 9) * 0.015));
-        const y = 492 + (i * PITCH + 90 - cy) * s;
-        css(calls.current[i], { top: `${y - 62}px`, opacity: k, transform: `translateX(${(1 - k) * 60}px)` });
-        const x0 = 960 + 90 * s + 12;
-        css(lines.current[i], { left: `${x0}px`, top: `${y}px`, width: `${Math.max(0, (1260 - x0) * k)}px` });
+        const k = eo(seg(p, 0.62 + (i - 10) * 0.01, 0.74 + (i - 10) * 0.01));
+        const y = 492 + (i * PITCH + 110 - cy) * s;
+        css(calls.current[i], { top: `${y - 70}px`, opacity: k, transform: `translateX(${(1 - k) * 60}px)` });
+        const x0 = ax(960, 0.5) + 110 * s + 14;
+        const x1 = ax(1250, 0.65);
+        css(lines.current[i], { left: `${x0}px`, top: `${y}px`, width: `${Math.max(0, (x1 - x0) * k)}px` });
       });
     },
   });
@@ -96,18 +138,44 @@ export default function ChainScene() {
       <div className="hs-stage">
         <div ref={chain} className="hs-chain" aria-hidden="true">
           {Array.from({ length: NB }, (_, i) => {
-            const c = COLS[(i * 3) % 5];
+            const hl = HL[i];
             return (
               <React.Fragment key={i}>
                 <div
                   ref={(n) => (blocks.current[i] = n)}
-                  className={`hs-blk ${HL[i] ? "hs-blk-hl" : ""}`}
-                  style={{ top: i * PITCH, background: `linear-gradient(135deg,${c[0]},${c[1]})` }}
+                  className={`hs-blk hs-tone-${TONES[(i * 3) % 4]} ${hl ? "hs-blk-hl" : ""}`}
+                  style={{ "--y": `${i * PITCH}px` }}
                 >
-                  <b>BLOCK {1030 + i}</b>
-                  <span>{hash(i)}</span>
+                  <div className="hs-blk-depth" />
+                  <div className="hs-blk-face">
+                    <div className="hs-blk-head">
+                      <b>#{1030 + i}</b>
+                      <span className="hs-blk-ok">
+                        <i />
+                        {hl ? hl.tag : "VERIFIED"}
+                      </span>
+                    </div>
+                    {hl ? (
+                      <div className="hs-blk-name">{hl.name}</div>
+                    ) : (
+                      <div className="hs-blk-bars">
+                        {BARS(i).map((v, k) => (
+                          <i key={k} style={{ height: `${v}%` }} />
+                        ))}
+                      </div>
+                    )}
+                    <div className="hs-blk-hash">{hash(i)}</div>
+                    <div className="hs-blk-foot">
+                      <span>{120 + ((i * 53) % 280)} TX</span>
+                      <span>0.{40 + ((i * 7) % 50)}s</span>
+                    </div>
+                  </div>
                 </div>
-                {i < NB - 1 && <div className="hs-lnk" style={{ top: i * PITCH + 170 }} />}
+                {i < NB - 1 && (
+                  <div className="hs-bridge" style={{ "--y": `${i * PITCH + 220}px` }}>
+                    <i />
+                  </div>
+                )}
               </React.Fragment>
             );
           })}
@@ -121,17 +189,33 @@ export default function ChainScene() {
             </span>
           </h2>
           <p ref={set("sub")} className="hs-chain-sub">
-            Exchanges, wallets, staking, crypto cards and AI agents, built secure by design.
+            Exchanges, wallets, staking, crypto cards and AI agents, engineered secure by design.
           </p>
+          <div ref={set("stats")} className="hs-chain-stats">
+            <div>
+              <b>Web3</b>
+              <span>Smart contracts &amp; tokens</span>
+            </div>
+            <div>
+              <b>KYC/AML</b>
+              <span>Compliance built in</span>
+            </div>
+          </div>
         </div>
         <div className="hs-calls">
-          {Object.entries(HL).map(([i, [n, d, href]]) => (
+          {Object.entries(HL).map(([i, x]) => (
             <React.Fragment key={i}>
-              <div ref={(x) => (lines.current[i] = x)} className="hs-cline" aria-hidden="true" />
-              <Link href={href} ref={(x) => (calls.current[i] = x)} className="hs-call">
-                <small>PROJECT</small>
-                <div>{n}</div>
-                <p>{d}</p>
+              <div ref={(n) => (lines.current[i] = n)} className="hs-cline" aria-hidden="true" />
+              <Link href={x.href} ref={(n) => (calls.current[i] = n)} className="hs-call">
+                <span className="hs-call-img">
+                  <Image src={x.img} alt={`${x.name} preview`} fill sizes="160px" />
+                </span>
+                <span className="hs-call-txt">
+                  <small>{x.tag}</small>
+                  <span className="hs-call-name">{x.name}</span>
+                  <span className="hs-call-desc">{x.desc}</span>
+                </span>
+                <span className="hs-call-go">→</span>
               </Link>
             </React.Fragment>
           ))}

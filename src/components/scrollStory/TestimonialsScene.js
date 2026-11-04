@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import Image from "next/image";
-import { useScene, fitCanvas, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
+import { useScene, fitCanvas, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 import { CubeSVG } from "./Cube";
 import ClientImg from "@/../public/assets/icons/CLIENT-IMG.png";
 import Client2 from "@/../public/assets/icons/client-2-opt.webp";
@@ -19,12 +19,71 @@ const TESTIMONIALS = [
     text: "My name is Faiqa, and I am the founder of the LiftSplit app. ERS TECH has developed an application for my business that was top-notch in quality. I am satisfied with the company's services as their team is highly cooperative and expert in their domain. Highly recommended!",
   },
 ];
-const CL = Array.from({ length: 70 }, (_, i) => ({
-  x: ((i * 7331) % 1000) / 1000,
-  y: ((i * 4421) % 1000) / 1000,
-  r: 0.6 + ((i * 13) % 10) / 10,
-  z: ((i * 271) % 1000) / 1000,
+const BLOBS = [
+  { c: [46, 102, 246], x: 0.25, y: 0.3, r: 0.75, sp: 0.21 },
+  { c: [38, 175, 237], x: 0.75, y: 0.35, r: 0.65, sp: 0.17 },
+  { c: [110, 75, 255], x: 0.55, y: 0.8, r: 0.7, sp: 0.13 },
+  { c: [20, 200, 200], x: 0.15, y: 0.85, r: 0.55, sp: 0.19 },
+];
+const WARP = Array.from({ length: 260 }, (_, i) => ({
+  a: ((i * 137.508) % 360) * (Math.PI / 180),
+  z: ((i * 7919) % 1000) / 1000,
+  v: 0.6 + ((i * 31) % 100) / 120,
 }));
+
+function drawAurora(g, w, h, t, q, warp, cx, cy) {
+  g.globalCompositeOperation = "source-over";
+  g.fillStyle = "#040a22";
+  g.fillRect(0, 0, w, h);
+  g.globalCompositeOperation = "lighter";
+  const D = Math.max(w, h);
+  BLOBS.forEach((b, i) => {
+    const x = (b.x + Math.sin(t * b.sp + i) * 0.12 + (cx / w - 0.5) * q * 0.3) * w;
+    const y = (b.y + Math.cos(t * b.sp * 1.3 + i * 2) * 0.1) * h;
+    const r = b.r * D * (0.8 + q * 0.5);
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, `rgba(${b.c.join(",")},0.36)`);
+    gr.addColorStop(0.5, `rgba(${b.c.join(",")},0.1)`);
+    gr.addColorStop(1, `rgba(${b.c.join(",")},0)`);
+    g.fillStyle = gr;
+    g.fillRect(0, 0, w, h);
+  });
+  // light rays from the card
+  g.save();
+  g.translate(cx, cy);
+  g.rotate(t * 0.05);
+  for (let k = 0; k < 14; k++) {
+    g.rotate((Math.PI * 2) / 14);
+    const lg = g.createLinearGradient(0, 0, D, 0);
+    lg.addColorStop(0, `rgba(160,220,255,${0.06 + 0.08 * q})`);
+    lg.addColorStop(1, "rgba(160,220,255,0)");
+    g.fillStyle = lg;
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(D, -D * 0.035);
+    g.lineTo(D, D * 0.035);
+    g.closePath();
+    g.fill();
+  }
+  g.restore();
+  // warp streaks
+  if (warp > 0) {
+    g.lineCap = "round";
+    for (const s of WARP) {
+      const z = (s.z + t * 0.25 * s.v * (0.4 + warp * 2.2)) % 1;
+      const r0 = Math.pow(z, 2.2) * D * 0.75;
+      const r1 = r0 + 6 + z * 120 * warp;
+      const ca = Math.cos(s.a), sa = Math.sin(s.a);
+      g.strokeStyle = `rgba(200,235,255,${z * 0.7 * warp})`;
+      g.lineWidth = 0.6 + z * 2;
+      g.beginPath();
+      g.moveTo(cx + ca * r0, cy + sa * r0);
+      g.lineTo(cx + ca * r1, cy + sa * r1);
+      g.stroke();
+    }
+  }
+  g.globalCompositeOperation = "source-over";
+}
 
 export default function TestimonialsScene() {
   const ref = useRef(null);
@@ -37,38 +96,26 @@ export default function TestimonialsScene() {
 
   useScene(ref, {
     name: "testimonials",
-    length: 2.0,
+    length: 2.8,
     render(p, t, mode) {
       if (mode !== "anim") return;
-      const c = cv.current;
-      if (c) {
-        const { g, w, h } = fitCanvas(c);
-        const q = seg(p, 0, 0.55);
-        g.clearRect(0, 0, w, h);
-        const sc0 = Math.max(w, h) / 1920;
-        for (const cl of CL) {
-          const z = (cl.z + q * 1.1 + t * 0.01) % 1.25;
-          const sc = 0.3 + z * z * 3.2;
-          const x = w / 2 + (cl.x - 0.5) * w * 1.3 * sc * 0.6;
-          const y = h / 2 + (cl.y - 0.5) * h * 1.2 * sc * 0.6;
-          const r = cl.r * 120 * sc * sc0;
-          const a = clamp(z * 1.4) * 0.85;
-          const gr = g.createRadialGradient(x, y, 0, x, y, r);
-          gr.addColorStop(0, `rgba(255,255,255,${a})`);
-          gr.addColorStop(0.6, `rgba(255,255,255,${a * 0.5})`);
-          gr.addColorStop(1, "rgba(255,255,255,0)");
-          g.fillStyle = gr;
-          g.beginPath();
-          g.arc(x, y, r, 0, 7);
-          g.fill();
-        }
-      }
-      css(white.current, { opacity: seg(p, 0.36, 0.52) });
       const f = eio(seg(p, 0, 0.5));
       const st = eio(seg(p, 0.5, 0.72));
-      const X = lerp(lerp(-300, 780, f), 1330, st);
-      const Y = lerp(lerp(1004, 234, f), 150, st);
-      const Sc = lerp(lerp(0.45, 1.35, f), 0.85, st);
+      const X = lerp(lerp(-300, ax(780, 0.5), f), ax(1330, 1), st);
+      const Y = lerp(lerp(1004, 234, f), 96, st);
+      const Sc = lerp(lerp(0.45, 1.35, f), 0.7, st);
+      const [vx, vy] = toView(X + 260, Y + 164);
+      const c = cv.current;
+      if (c && p < 0.62) {
+        const { g, w, h } = fitCanvas(c);
+        drawAurora(g, w, h, t, seg(p, 0, 0.5), seg(p, 0.05, 0.3) * (1 - seg(p, 0.38, 0.5)), vx, vy);
+      }
+      const m = getMetrics();
+      const rr = eio(seg(p, 0.36, 0.56)) * Math.hypot(m.W, m.H) * 1.05;
+      css(white.current, {
+        opacity: p > 0.36 ? 1 : 0,
+        clipPath: `circle(${rr}px at ${vx}px ${vy}px)`,
+      });
       const RY = lerp(lerp(-50, -20, f), -18, st);
       const RX = lerp(lerp(55, 10, f), 8, st);
       const RZ = lerp(lerp(-30, -6, f), 6, st) + Math.sin(t * 1.5) * 1.5;
