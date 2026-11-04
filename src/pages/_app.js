@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import "@/styles/motion.css";
+import "@/styles/scroll-story.css";
 import AppLayout from "../corelayout/AppLayout/index";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import { Provider } from "react-redux";

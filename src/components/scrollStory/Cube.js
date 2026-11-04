@@ -1,0 +1,104 @@
+import React, { useEffect, useId, useRef } from "react";
+import { addTicker, scenePos, toView, getMetrics, eio, clamp, lerp, DESKTOP_MQ } from "./engine";
+import { prefersReducedMotion } from "@/lib/gsap";
+
+/** Isometric "data block" that matches the ERS logo cube. */
+export function CubeSVG({ className = "", style }) {
+  const id = useId().replace(/:/g, "");
+  return (
+    <svg viewBox="-100 -100 200 200" className={className} style={style} aria-hidden="true">
+      <defs>
+        <linearGradient id={`t${id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#9fe6ff" />
+          <stop offset="1" stopColor="#26AFED" />
+        </linearGradient>
+        <linearGradient id={`l${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2e66f6" />
+          <stop offset="1" stopColor="#0a2f8f" />
+        </linearGradient>
+        <linearGradient id={`r${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2b8cff" />
+          <stop offset="1" stopColor="#1349c7" />
+        </linearGradient>
+      </defs>
+      <g stroke="rgba(255,255,255,.55)" strokeWidth="2" strokeLinejoin="round">
+        <polygon points="0,-80 69,-40 0,0 -69,-40" fill={`url(#t${id})`} />
+        <polygon points="-69,-40 0,0 0,80 -69,40" fill={`url(#l${id})`} />
+        <polygon points="69,-40 0,0 0,80 69,40" fill={`url(#r${id})`} />
+      </g>
+      <g stroke="rgba(255,255,255,.5)" strokeWidth="3" fill="none" strokeLinecap="round">
+        <path d="M-50 -5 L-50 25 L-30 37" />
+        <path d="M-30 5 L-30 20" />
+        <path d="M25 10 L50 -5 M25 30 L50 15 M25 50 L40 41" />
+      </g>
+      <g fill="#fff">
+        <circle cx="-30" cy="37" r="4" />
+        <circle cx="50" cy="-5" r="4" />
+        <circle cx="50" cy="15" r="4" />
+      </g>
+    </svg>
+  );
+}
+
+// Keyframes: [scene, progress, x, y, size, opacity] in stage coordinates.
+const KF = [
+  ["hero", 0.0, 960, 424, 40, 0],
+  ["hero", 0.52, 960, 424, 60, 0],
+  ["hero", 0.62, 960, 424, 200, 1],
+  ["hero", 1.0, 960, 424, 200, 1],
+  ["trust", 0.04, 1640, 250, 150, 1],
+  ["trust", 1.0, 1640, 250, 150, 1],
+  ["build", 0.0, 1300, 464, 190, 1],
+  ["build", 0.06, 1300, 464, 200, 1],
+  ["build", 0.13, 1300, 464, 300, 0],
+  ["values", 0.36, 960, 234, 60, 0],
+  ["values", 0.5, 960, 234, 180, 1],
+  ["values", 1.0, 960, 234, 180, 1],
+];
+
+/** Fixed cube that travels between scenes on desktop. */
+export default function TravelCube() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || prefersReducedMotion()) return undefined;
+    const mq = window.matchMedia(DESKTOP_MQ);
+    return addTicker((t) => {
+      if (!mq.matches || !document.documentElement.classList.contains("hs-anim")) {
+        node.style.display = "none";
+        return;
+      }
+      const pts = KF.map((k) => [scenePos(k[0], k[1]), ...k.slice(2)]);
+      if (pts.some((p) => p[0] == null)) {
+        node.style.display = "none";
+        return;
+      }
+      const y = window.scrollY;
+      let i = 0;
+      while (i < pts.length - 2 && y >= pts[i + 1][0]) i++;
+      const a = pts[i];
+      const b = pts[i + 1];
+      const k = eio(clamp((y - a[0]) / Math.max(1, b[0] - a[0])));
+      const x = lerp(a[1], b[1], k);
+      let sy = lerp(a[2], b[2], k);
+      const size = lerp(a[3], b[3], k);
+      const o = lerp(a[4], b[4], k);
+      // after the last keyframe the cube scrolls away with the page
+      const endPos = pts[pts.length - 1][0];
+      const after = Math.max(0, y - endPos);
+      const m = getMetrics();
+      const [vx, vy] = toView(x, sy);
+      const px = size * m.s;
+      node.style.display = o > 0.01 ? "block" : "none";
+      node.style.opacity = o;
+      node.style.width = node.style.height = `${px}px`;
+      node.style.transform = `translate(${vx - px / 2}px, ${vy - px / 2 - after + Math.sin(t * 2) * 8 * m.s}px) rotate(${Math.sin(t * 1.3) * 4}deg)`;
+    });
+  }, []);
+  return (
+    <div ref={ref} className="hs-travel-cube" aria-hidden="true">
+      <div className="hs-travel-glow" />
+      <CubeSVG className="hs-travel-svg" />
+    </div>
+  );
+}
