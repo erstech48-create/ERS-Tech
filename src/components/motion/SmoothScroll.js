@@ -46,7 +46,9 @@ export default function SmoothScroll({ children }) {
       lenis.raf(time * 1000);
     };
 
-    gsap.ticker.add(tickerCb);
+    // prioritize: Lenis moves the page first, then the scenes read the new
+    // scroll position in the same frame (no one-frame lag / judder)
+    gsap.ticker.add(tickerCb, false, true);
     gsap.ticker.lagSmoothing(500, 33);
 
     const handleRouteChangeStart = () => {

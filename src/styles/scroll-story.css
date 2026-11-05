@@ -240,7 +240,8 @@
 .hs-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
+  /* perf: the old filter: blur(60px) is baked into the softer gradients below
+     (same look, no per-frame blur raster) */
 }
 .hs-orb-a {
   right: -10%;
@@ -249,7 +250,7 @@
   height: 60vw;
   max-width: 900px;
   max-height: 900px;
-  background: radial-gradient(circle, rgba(46, 102, 246, 0.22), rgba(46, 102, 246, 0) 65%);
+  background: radial-gradient(circle, rgba(46, 102, 246, 0.198) 0%, rgba(46, 102, 246, 0.172) 18%, rgba(46, 102, 246, 0.11) 38%, rgba(46, 102, 246, 0.044) 56%, rgba(46, 102, 246, 0.011) 68%, rgba(46, 102, 246, 0) 76%);
 }
 .hs-orb-b {
   left: -15%;
@@ -258,7 +259,7 @@
   height: 55vw;
   max-width: 800px;
   max-height: 800px;
-  background: radial-gradient(circle, rgba(38, 175, 237, 0.2), rgba(38, 175, 237, 0) 65%);
+  background: radial-gradient(circle, rgba(38, 175, 237, 0.18) 0%, rgba(38, 175, 237, 0.156) 18%, rgba(38, 175, 237, 0.1) 38%, rgba(38, 175, 237, 0.04) 56%, rgba(38, 175, 237, 0.01) 68%, rgba(38, 175, 237, 0) 76%);
 }
 .hs-orb-c {
   right: -12%;
@@ -267,7 +268,7 @@
   height: 60vw;
   max-width: 1000px;
   max-height: 1000px;
-  background: radial-gradient(circle, rgba(46, 102, 246, 0.14), rgba(46, 102, 246, 0) 65%);
+  background: radial-gradient(circle, rgba(46, 102, 246, 0.126) 0%, rgba(46, 102, 246, 0.109) 18%, rgba(46, 102, 246, 0.07) 38%, rgba(46, 102, 246, 0.028) 56%, rgba(46, 102, 246, 0.007) 68%, rgba(46, 102, 246, 0) 76%);
 }
 .hs-gridfade {
   position: absolute;
@@ -300,8 +301,7 @@
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 1px 0 rgba(11, 21, 48, 0.04), 0 18px 40px rgba(30, 60, 140, 0.08);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  /* perf: backdrop-filter removed - it re-blurred the page behind every card on every frame */
   overflow: hidden;
 }
 .hs-stat::before {
@@ -1758,7 +1758,7 @@
     transform: scale(0.7);
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .hs-vals {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -2444,14 +2444,18 @@ html.hs-anim .hs-bridge i {
   border-radius: 4px;
   background: #fff;
   box-shadow: 0 0 12px #fff;
+  /* perf: same 90px -> -30px travel, but with transform (GPU) instead of
+     animating "top", which re-laid-out and re-painted the whole chain */
+  top: 0;
+  will-change: transform;
   animation: hs-pulse 1.6s linear infinite;
 }
 @keyframes hs-pulse {
   from {
-    top: 90px;
+    transform: translate3d(0, 90px, 0);
   }
   to {
-    top: -30px;
+    transform: translate3d(0, -30px, 0);
   }
 }
 html.hs-anim .hs-chain-head {
@@ -2769,7 +2773,7 @@ html.hs-anim .hs-cta .hs-tagline {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html:not(.hs-anim) .hs-svc-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -3050,4 +3054,28 @@ html.hs-anim .hs-t-link {
 }
 html.hs-anim .hs-tcard .hs-who .hs-av {
   font-size: 19px;
+}
+
+/* ==========================================================================
+   Performance: GPU layers for everything the scroll story moves or fades.
+   Only for the scene(s) currently on screen (.hs-on is set by the engine), so
+   the browser never keeps hundreds of layers alive at once.
+   ========================================================================== */
+html.hs-anim .hs-on[data-hs="t"],
+html.hs-anim .hs-on [data-hs="t"] {
+  will-change: transform, opacity;
+}
+html.hs-anim .hs-on canvas {
+  will-change: transform;
+}
+html.hs-anim .hs-on.hs-wipe-lead,
+html.hs-anim .hs-wipe-wrap > .hs-on {
+  will-change: clip-path;
+}
+
+/* perf: looping CSS animations inside scenes that are off screen are paused */
+html.hs-anim .hs-scene:not(.hs-on) *,
+html.hs-anim .hs-scene:not(.hs-on) *::before,
+html.hs-anim .hs-scene:not(.hs-on) *::after {
+  animation-play-state: paused !important;
 }

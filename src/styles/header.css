@@ -327,27 +327,63 @@ html.eh-locked body {
   overflow: hidden;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .eh-bar {
-    height: 82px;
+    height: 76px;
     max-width: 100%;
-    padding: 0 40px;
+    padding: 0 24px;
   }
-  .eh-logo { width: 125px; }
+  .eh-logo { width: 118px; }
   .eh-logo img {
-    width: 125px !important;
+    width: 118px !important;
   }
   .eh-nav,
   .eh-cta {
     display: flex;
   }
   .eh-nav {
-    margin-right: 12px;
+    margin-right: 8px;
+  }
+  .eh-nav ul {
+    gap: 4px;
+  }
+  .eh-link {
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+  .eh-cta {
+    padding: 10px 20px;
+    font-size: 15px;
   }
   .eh-burger,
   .eh-mobile,
   .eh-overlay {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .eh-bar {
+    height: 82px;
+    padding: 0 40px;
+  }
+  .eh-logo { width: 125px; }
+  .eh-logo img {
+    width: 125px !important;
+  }
+  .eh-nav {
+    margin-right: 12px;
+  }
+  .eh-nav ul {
+    gap: 6px;
+  }
+  .eh-link {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+  .eh-cta {
+    padding: 12px 26px;
+    font-size: 16px;
   }
 }
 @media (min-width: 1440px) {

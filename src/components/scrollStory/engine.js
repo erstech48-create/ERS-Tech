@@ -13,11 +13,11 @@ export const lerp = (a, b, t) => a + (b - a) * t;
 export const STAGE_W = 1920; // desktop design width
 export const STAGE_H = 984; // desktop design height (viewport minus navbar)
 const MAX_STAGE_W = 2500; // wider than this, the stage is centred again
-// Phones/tablets (< 1024px) use a portrait stage with their own layout
+// Phones (< 768px) use a portrait stage with their own layout
 export const STAGE_W_M = 430;
 export const STAGE_H_M = 860;
 const MAX_STAGE_W_M = 560;
-export const DESKTOP_MQ = "(min-width: 1024px)";
+export const DESKTOP_MQ = "(min-width: 768px)";
 // Higher = scroll animations follow the scrollbar more tightly.
 const FOLLOW = 7;
 
@@ -45,7 +45,11 @@ export function css(node, styles) {
       node.style[k] = v;
     }
   }
-  node.dataset.hs = "1";
+  // "t" = this node is moved/faded every frame -> promoted to its own GPU layer
+  // while its scene is on screen (see .hs-on rules in scroll-story.css)
+  // (scaled nodes too: the browser re-rasters them sharp as soon as they settle)
+  const want = node.__hsLast.transform !== undefined || node.__hsLast.opacity !== undefined ? "t" : "1";
+  if (node.dataset.hs !== want) node.dataset.hs = want;
 }
 /** Fade + slide helper: k = 0 hidden, 1 visible. */
 export function rv(node, k, dy = 40, dx = 0, extra = "") {
@@ -84,7 +88,7 @@ function updateMetrics() {
   if (typeof window === "undefined") return;
   const W = window.innerWidth;
   let H = window.innerHeight;
-  const mobile = W < 1024;
+  const mobile = W < 768;
   // On phones the address bar changes the height while scrolling; ignore that
   if (mobile && metrics.mobile && W === metrics.W && Math.abs(H - metrics.H) < 160) H = metrics.H;
   const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
@@ -120,21 +124,22 @@ function bindMetrics() {
   metricsBound = true;
   ScrollTrigger.config({ ignoreMobileResize: true });
   updateMetrics();
-  let lastW = window.innerWidth, lastMobile = window.innerWidth < 1024, rT;
+  let lastW = window.innerWidth, lastH = window.innerHeight, lastMobile = window.innerWidth < 768, rT;
   const onResize = () => {
     clearTimeout(rT);
     rT = setTimeout(() => {
-      const W = window.innerWidth, mobile = W < 1024;
-      if (mobile !== lastMobile) {            // crossed the desktop/mobile breakpoint
-        sessionStorage.setItem("hs-scroll-ratio",
-          String(window.scrollY / Math.max(1, document.documentElement.scrollHeight)));
-        window.location.reload();             // clean start for the other layout
-        return;
+      const W = window.innerWidth, H = window.innerHeight, mobile = W < 768;
+      const breakpointChanged = mobile !== lastMobile;
+      const sizeChanged = W !== lastW || Math.abs(H - lastH) > 30;
+
+      if (breakpointChanged || sizeChanged) {
+        lastMobile = mobile;
+        lastW = W;
+        lastH = H;
+        updateMetrics();
+        ScrollTrigger.refresh(true);
       }
-      if (W !== lastW || !mobile) {           // ignore height-only changes on phones
-        lastW = W; updateMetrics(); ScrollTrigger.refresh();
-      }
-    }, 250);
+    }, 100);
   };
   window.addEventListener("resize", onResize);
   window.addEventListener("orientationchange", onResize);
@@ -217,8 +222,8 @@ export function useScene(ref, opts) {
     const reduced = prefersReducedMotion();
     const mm = gsap.matchMedia();
 
-    // Animated mode on every screen size; re-runs when crossing the 1024px breakpoint
-    mm.add({ d: DESKTOP_MQ, m: "(max-width: 1023px)" }, () => {
+    // Animated mode on every screen size; re-runs when crossing the 768px breakpoint
+    mm.add({ d: DESKTOP_MQ, m: "(max-width: 767px)" }, () => {
       if (reduced) return undefined;
       enterAnim();
       updateMetrics();
@@ -277,14 +282,22 @@ export function useScene(ref, opts) {
       }
 
       let lastRendered = -999;
-      let idleFrame = 0;
+      let on = false;
+      const setOn = (v) => {
+        if (v === on) return;
+        on = v;
+        el.classList.toggle("hs-on", v);
+        if (lead) lead.classList.toggle("hs-on", v);
+      };
       const remove = addTicker((t, dt) => {
         const y = window.scrollY;
-        const H = window.innerHeight;
+        const H = metrics.H;
         if (y < st.start - H * 1.05 || y > st.end + H * 1.05) {
           shown = target;
+          setOn(false);
           return;
         }
+        setOn(true);
         // ease the shown progress toward the scroll target (frame-rate independent)
         const follow = metrics.mobile ? 16 : 12;
         shown += (target - shown) * (1 - Math.exp(-dt * follow));
@@ -302,6 +315,7 @@ export function useScene(ref, opts) {
 
       return () => {
         remove();
+        setOn(false);
         st.kill();
         wipe?.kill();
         delete registry[opts.name];
@@ -340,12 +354,50 @@ export function radial(g, x0, y0, r0, x1, y1, r1) {
 }
 
 /** Size a canvas to its CSS box (capped DPR) and return the 2D context + size. */
-export function fitCanvas(cv) {
-  if (!cv || cv.clientWidth < 2 || cv.clientHeight < 2) return null;
+// Canvas CSS sizes are tracked with a ResizeObserver instead of reading
+// clientWidth/clientHeight every frame (that read forced a synchronous layout
+// right after the scenes had written their styles = dropped frames).
+let canvasRO = null;
+const CANVAS_PX_BUDGET = 1600 * 1000; // ~1.6M px: enough for a crisp globe, light enough for Retina/QHD
+function canvasSize(cv) {
+  if (!cv.__hsSize) {
+    cv.__hsSize = { w: cv.clientWidth, h: cv.clientHeight };
+    if (typeof ResizeObserver !== "undefined") {
+      if (!canvasRO) {
+        canvasRO = new ResizeObserver((entries) => {
+          for (const e of entries) {
+            const b = e.contentBoxSize && e.contentBoxSize[0];
+            e.target.__hsSize = b
+              ? { w: b.inlineSize, h: b.blockSize }
+              : { w: e.contentRect.width, h: e.contentRect.height };
+          }
+        });
+      }
+      canvasRO.observe(cv);
+    } else {
+      cv.__hsSize = null; // no observer: measure every time
+      return { w: cv.clientWidth, h: cv.clientHeight };
+    }
+  }
+  return cv.__hsSize;
+}
+/**
+ * q = resolution factor for soft, full-screen background canvases
+ * (gradients/glows look identical at lower resolution and cost far less per frame).
+ */
+export function fitCanvas(cv, q = 1) {
+  if (!cv) return null;
+  const sz = canvasSize(cv);
+  if (sz.w < 2 || sz.h < 2) return null;
   const maxDpr = metrics.mobile ? 1 : 1.25;
-  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-  const w = cv.clientWidth;
-  const h = cv.clientHeight;
+  const w = sz.w;
+  const h = sz.h;
+  let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+  // Pixel budget: full-screen canvases are redrawn every frame, so on large
+  // (QHD / 4K / zoomed-out) screens the backing store is capped at ~Full HD.
+  const budget = (typeof window !== "undefined" && window.__hsPx) || CANVAS_PX_BUDGET;
+  if (w * h * dpr * dpr > budget) dpr = Math.sqrt(budget / (w * h));
+  dpr *= q;
   const pw = Math.round(w * dpr);
   const ph = Math.round(h * dpr);
   if (cv.width !== pw || cv.height !== ph) {
@@ -355,6 +407,19 @@ export function fitCanvas(cv) {
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { g, w, h };
+}
+
+/**
+ * High-refresh screens (MacBook Pro ProMotion 120Hz, 144Hz monitors) run the
+ * ticker twice as often. DOM motion keeps the full rate, but the heavy canvas
+ * redraws are capped at ~60-90 per second (the eye can't tell the difference
+ * on soft backgrounds, the GPU does half the work).
+ */
+export function canvasDue(cv) {
+  const now = performance.now();
+  if (cv.__hsDrawn && now - cv.__hsDrawn < 10) return false;
+  cv.__hsDrawn = now;
+  return true;
 }
 
 /** Convert stage coordinates to viewport pixels (anim mode). */

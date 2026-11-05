@@ -2571,3 +2571,26 @@ button {
     right: 0% !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   No sideways scrolling on any screen size.
+   Full-bleed pieces (e.g. the logo marquee uses 100vw) are wider than the page
+   whenever a classic scrollbar is visible (Windows, DevTools device sizes).
+   "clip" cuts that off without creating a scroll container, so pinned scenes,
+   sticky elements and Lenis keep working exactly as before.
+   -------------------------------------------------------------------------- */
+html,
+body {
+  max-width: 100%;
+}
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+@supports not (overflow: clip) {
+  body {
+    overflow-x: hidden;
+  }
+}

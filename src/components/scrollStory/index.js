@@ -34,17 +34,31 @@ export default function ScrollStory() {
         sessionStorage.removeItem("hs-scroll-ratio");
         window.scrollTo(0, r * document.documentElement.scrollHeight);
       }
+      // after the last intro line has finished (.55s delay + .8s) - no end jump
       setTimeout(() => {
         root.classList.add("hs-entered");
-      }, 1200);
+      }, 1500);
     };
 
     if (root.classList.contains("hs-ready")) {
       root.classList.add("hs-entered");
       finish();
     } else {
+      // Wait for the real Poppins files, not just document.fonts.ready: on a first
+      // (uncached) production visit "ready" can resolve before the font request
+      // starts, so the intro played in the fallback font and then visibly
+      // re-drew when Poppins arrived (the hero text looked like it loaded twice).
+      const fam = getComputedStyle(root).getPropertyValue("--font-poppins").trim();
+      const fontsLoaded =
+        fam && document.fonts?.load
+          ? Promise.all(
+              ["400", "500", "600", "700"].map((w) =>
+                document.fonts.load(`${w} 40px ${fam}`, "Transform Your Ideas").catch(() => null)
+              )
+            ).then(() => document.fonts.ready)
+          : document.fonts?.ready ?? Promise.resolve();
       Promise.race([
-        Promise.all([document.fonts?.ready ?? Promise.resolve(), globeReady, wait(600)]),
+        Promise.all([fontsLoaded, globeReady, wait(600)]),
         wait(3000), // safety: never block longer than 3s
       ]).then(finish);
     }

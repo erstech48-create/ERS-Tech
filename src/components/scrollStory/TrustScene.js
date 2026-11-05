@@ -74,7 +74,16 @@ export default function TrustScene() {
         nums.current.forEach((n, i) => n && (n.textContent = STATS[i].to));
         bars.current.forEach((b, i) => css(b, { transform: `scaleX(${STATS[i].fill})` }));
       }
-      const tw = track.current ? track.current.scrollWidth / 2 : 2000;
+      // marquee width is measured only when it changes (no layout read per frame)
+      const tr = track.current;
+      if (tr && !tr.__hsW) {
+        tr.__hsW = tr.scrollWidth / 2 || 0;
+        if (typeof ResizeObserver !== "undefined" && !tr.__hsRO) {
+          tr.__hsRO = new ResizeObserver(() => { tr.__hsW = 0; });
+          tr.__hsRO.observe(tr);
+        }
+      }
+      const tw = tr && tr.__hsW > 0 ? tr.__hsW : 2000;
       css(track.current, { transform: `translate3d(${-((t * 60) % tw)}px, 0, 0)` });
     },
   });
