@@ -1758,7 +1758,7 @@
     transform: scale(0.7);
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .hs-vals {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -2769,7 +2769,7 @@ html.hs-anim .hs-cta .hs-tagline {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html:not(.hs-anim) .hs-svc-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

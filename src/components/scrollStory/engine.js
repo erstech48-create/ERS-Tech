@@ -13,11 +13,11 @@ export const lerp = (a, b, t) => a + (b - a) * t;
 export const STAGE_W = 1920; // desktop design width
 export const STAGE_H = 984; // desktop design height (viewport minus navbar)
 const MAX_STAGE_W = 2500; // wider than this, the stage is centred again
-// Phones/tablets (< 1024px) use a portrait stage with their own layout
+// Phones (< 768px) use a portrait stage with their own layout
 export const STAGE_W_M = 430;
 export const STAGE_H_M = 860;
 const MAX_STAGE_W_M = 560;
-export const DESKTOP_MQ = "(min-width: 1024px)";
+export const DESKTOP_MQ = "(min-width: 768px)";
 // Higher = scroll animations follow the scrollbar more tightly.
 const FOLLOW = 7;
 
@@ -84,7 +84,7 @@ function updateMetrics() {
   if (typeof window === "undefined") return;
   const W = window.innerWidth;
   let H = window.innerHeight;
-  const mobile = W < 1024;
+  const mobile = W < 768;
   // On phones the address bar changes the height while scrolling; ignore that
   if (mobile && metrics.mobile && W === metrics.W && Math.abs(H - metrics.H) < 160) H = metrics.H;
   const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
@@ -120,21 +120,22 @@ function bindMetrics() {
   metricsBound = true;
   ScrollTrigger.config({ ignoreMobileResize: true });
   updateMetrics();
-  let lastW = window.innerWidth, lastMobile = window.innerWidth < 1024, rT;
+  let lastW = window.innerWidth, lastH = window.innerHeight, lastMobile = window.innerWidth < 768, rT;
   const onResize = () => {
     clearTimeout(rT);
     rT = setTimeout(() => {
-      const W = window.innerWidth, mobile = W < 1024;
-      if (mobile !== lastMobile) {            // crossed the desktop/mobile breakpoint
-        sessionStorage.setItem("hs-scroll-ratio",
-          String(window.scrollY / Math.max(1, document.documentElement.scrollHeight)));
-        window.location.reload();             // clean start for the other layout
-        return;
+      const W = window.innerWidth, H = window.innerHeight, mobile = W < 768;
+      const breakpointChanged = mobile !== lastMobile;
+      const sizeChanged = W !== lastW || Math.abs(H - lastH) > 30;
+
+      if (breakpointChanged || sizeChanged) {
+        lastMobile = mobile;
+        lastW = W;
+        lastH = H;
+        updateMetrics();
+        ScrollTrigger.refresh(true);
       }
-      if (W !== lastW || !mobile) {           // ignore height-only changes on phones
-        lastW = W; updateMetrics(); ScrollTrigger.refresh();
-      }
-    }, 250);
+    }, 100);
   };
   window.addEventListener("resize", onResize);
   window.addEventListener("orientationchange", onResize);
@@ -217,8 +218,8 @@ export function useScene(ref, opts) {
     const reduced = prefersReducedMotion();
     const mm = gsap.matchMedia();
 
-    // Animated mode on every screen size; re-runs when crossing the 1024px breakpoint
-    mm.add({ d: DESKTOP_MQ, m: "(max-width: 1023px)" }, () => {
+    // Animated mode on every screen size; re-runs when crossing the 768px breakpoint
+    mm.add({ d: DESKTOP_MQ, m: "(max-width: 767px)" }, () => {
       if (reduced) return undefined;
       enterAnim();
       updateMetrics();

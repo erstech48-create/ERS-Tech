@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Home scroll story – phone / tablet cinematic mode (< 1024px)
+   Home scroll story – phone cinematic mode (< 768px)
    html.hs-anim.hs-m : every scene is pinned and drawn on a 430 x 860 portrait
    stage that is scaled to the screen (same transitions as desktop).
    These rules override the desktop html.hs-anim positions.
