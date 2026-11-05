@@ -286,17 +286,13 @@ export function useScene(ref, opts) {
           return;
         }
         // ease the shown progress toward the scroll target (frame-rate independent)
-        const follow = metrics.mobile ? 10 : 12;
+        const follow = metrics.mobile ? 16 : 12;
         shown += (target - shown) * (1 - Math.exp(-dt * follow));
         if (Math.abs(target - shown) < 0.0005) shown = target;
 
-        const isMoving = Math.abs(shown - lastRendered) >= 0.0002;
+        const isMoving = Math.abs(shown - lastRendered) >= 0.0001;
         if (!isMoving && !opts.live) {
           return;
-        }
-        if (opts.live && !isMoving && !isUserScrolling()) {
-          idleFrame++;
-          if (idleFrame % 2 !== 0) return;
         }
 
         lastRendered = shown;

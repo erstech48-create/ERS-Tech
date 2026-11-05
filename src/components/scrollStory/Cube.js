@@ -110,8 +110,14 @@ export default function TravelCube() {
       const px = size * m.s;
       node.style.display = o > 0.01 ? "block" : "none";
       node.style.opacity = o;
-      node.style.width = node.style.height = `${px}px`;
-      node.style.transform = `translate(${vx - px / 2}px, ${vy - px / 2 - after + Math.sin(t * 2) * 8 * m.s}px) rotate(${Math.sin(t * 1.3) * 4}deg)`;
+      const baseSize = 200;
+      const sc = px / baseSize;
+      const tx = vx - px / 2;
+      const ty = vy - px / 2 - after + Math.sin(t * 2) * 8 * m.s;
+      node.style.width = `${baseSize}px`;
+      node.style.height = `${baseSize}px`;
+      node.style.transformOrigin = "top left";
+      node.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${sc}) rotate(${Math.sin(t * 1.3) * 4}deg)`;
     });
   }, []);
   return (

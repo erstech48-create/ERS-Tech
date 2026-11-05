@@ -47,7 +47,7 @@ export default function SmoothScroll({ children }) {
     };
 
     gsap.ticker.add(tickerCb);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     const handleRouteChangeStart = () => {
       // Pause or prepare for transition

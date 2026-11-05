@@ -49,14 +49,14 @@ export default function ValuesCtaScene() {
       });
       const rk = eo(seg(p, 0.42, 0.6));
       (mob ? [[190, t * 40], [290, -t * 25]] : [[300, t * 40], [460, -t * 25]]).forEach(([d, rot], i) => {
-        const D = d * lerp(0.3, 1, rk);
+        const sc = lerp(0.3, 1, rk);
         css(rings.current[i], {
-          width: `${D}px`,
-          height: `${D}px`,
-          marginLeft: `${-D / 2}px`,
-          marginTop: `${-D / 2}px`,
+          width: `${d}px`,
+          height: `${d}px`,
+          marginLeft: `${-d / 2}px`,
+          marginTop: `${-d / 2}px`,
           opacity: rk,
-          transform: `rotate(${rot}deg)`,
+          transform: `scale(${sc}) rotate(${rot}deg)`,
         });
       });
       parts.current.forEach((n, i) => rv(n, eo(seg(p, 0.5 + i * 0.05, 0.64 + i * 0.05)), 40));

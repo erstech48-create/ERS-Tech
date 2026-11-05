@@ -330,7 +330,8 @@ html.eh-locked body {
 @media (min-width: 1024px) {
   .eh-bar {
     height: 82px;
-    padding: 0 32px;
+    max-width: 100%;
+    padding: 0 40px;
   }
   .eh-logo { width: 125px; }
   .eh-logo img {
@@ -347,6 +348,11 @@ html.eh-locked body {
   .eh-mobile,
   .eh-overlay {
     display: none;
+  }
+}
+@media (min-width: 1440px) {
+  .eh-bar {
+    padding: 0 56px;
   }
 }
 @media (min-width: 1280px) {

@@ -1270,7 +1270,7 @@
   inset: 10px 0 -10px 0;
   border-radius: 24px;
   background: var(--tone-d);
-  filter: brightness(0.55);
+  opacity: 0.55;
 }
 .hs-blk-face {
   position: absolute;
@@ -2381,6 +2381,7 @@ html.hs-anim .hs-chain > .hs-blk:nth-child(n + 10) {
   top: var(--y);
   width: 220px;
   height: 220px;
+  contain: paint;
 }
 html.hs-anim .hs-blk-depth {
   inset: 16px 0 -16px 0;
