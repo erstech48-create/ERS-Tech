@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import Link from "next/link";
 import { useScene, fitCanvas, radial, toView, getMetrics, ax, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
 import { LAND_DOTS_B64 } from "./landDots";
@@ -74,15 +74,18 @@ function drawStars(g, w, h, t, alpha) {
   }
 }
 
+let cachedG = null;
 let cachedGrads = null;
 let lastCx = -999, lastCy = -999, lastR = -999;
 function getGradients(g, cx, cy, R) {
   if (
+    cachedG !== g ||
     !cachedGrads ||
     Math.abs(cx - lastCx) > 1 ||
     Math.abs(cy - lastCy) > 1 ||
     Math.abs(R - lastR) > 1
   ) {
+    cachedG = g;
     lastCx = cx;
     lastCy = cy;
     lastR = R;
@@ -314,6 +317,16 @@ export default function HeroScene() {
   const ref = useRef(null);
   const cv = useRef(null);
   const textWrap = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      cachedG = null;
+      cachedGrads = null;
+      lastCx = -999;
+      lastCy = -999;
+      lastR = -999;
+    };
+  }, []);
 
   useScene(ref, {
     name: "hero",
