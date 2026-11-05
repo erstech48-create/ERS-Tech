@@ -11,7 +11,9 @@ export default function Document() {
   var m=window.matchMedia;
   if(m("(prefers-reduced-motion: reduce)").matches)return;
   var d=document.documentElement,W=innerWidth,H=innerHeight,mob=W<1024;
-  var nav=mob?72:82,SW=mob?430:1920,SH=mob?860:984,MX=mob?560:2500;
+  var nav=mob?72:82;
+  if (!W || !H || H - nav < 120) return;
+  var SW=mob?430:1920,SH=mob?860:984,MX=mob?560:2500;
   var s=Math.min(W/SW,(H-nav)/SH);
   var sw=Math.min(Math.max(W/s,SW),MX);
   d.classList.add("hs-anim");

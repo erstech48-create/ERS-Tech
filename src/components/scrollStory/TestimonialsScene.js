@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useScene, fitCanvas, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
+import { useScene, fitCanvas, radial, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 import { CubeSVG } from "./Cube";
 import { REVIEWS } from "@/data/reviews";
 
@@ -26,55 +26,101 @@ const WARP = Array.from({ length: 260 }, (_, i) => ({
   v: 0.6 + ((i * 31) % 100) / 120,
 }));
 
+let fanCanvas = null;
+let fanD = 0;
+function getFanCanvas(D) {
+  const size = Math.round(D * 2);
+  if (!fanCanvas || Math.abs(fanD - D) > 20) {
+    fanD = D;
+    fanCanvas = document.createElement("canvas");
+    fanCanvas.width = size;
+    fanCanvas.height = size;
+    const fg = fanCanvas.getContext("2d");
+    fg.translate(D, D);
+    for (let k = 0; k < 14; k++) {
+      fg.rotate((Math.PI * 2) / 14);
+      const lg = fg.createLinearGradient(0, 0, D, 0);
+      lg.addColorStop(0, "rgba(160,220,255,0.12)");
+      lg.addColorStop(1, "rgba(160,220,255,0)");
+      fg.fillStyle = lg;
+      fg.beginPath();
+      fg.moveTo(0, 0);
+      fg.lineTo(D, -D * 0.035);
+      fg.lineTo(D, D * 0.035);
+      fg.closePath();
+      fg.fill();
+    }
+  }
+  return fanCanvas;
+}
+
+let blobCanvas = null;
+let blobW = 0, blobH = 0;
+function getBlobCanvas(w, h, D) {
+  const bw = Math.max(10, Math.round(w / 3));
+  const bh = Math.max(10, Math.round(h / 3));
+  const bD = D / 3;
+  if (!blobCanvas || blobW !== bw || blobH !== bh) {
+    blobW = bw;
+    blobH = bh;
+    blobCanvas = document.createElement("canvas");
+    blobCanvas.width = bw;
+    blobCanvas.height = bh;
+    const bg = blobCanvas.getContext("2d");
+    BLOBS.forEach((b) => {
+      const bx = b.x * bw;
+      const by = b.y * bh;
+      const br = b.r * bD;
+      const gr = radial(bg, bx, by, 0, bx, by, br);
+      gr.addColorStop(0, `rgba(${b.c.join(",")},0.36)`);
+      gr.addColorStop(0.5, `rgba(${b.c.join(",")},0.1)`);
+      gr.addColorStop(1, `rgba(${b.c.join(",")},0)`);
+      bg.fillStyle = gr;
+      bg.fillRect(0, 0, bw, bh);
+    });
+  }
+  return blobCanvas;
+}
+
 function drawAurora(g, w, h, t, q, warp, cx, cy) {
   g.globalCompositeOperation = "source-over";
   g.fillStyle = "#040a22";
   g.fillRect(0, 0, w, h);
   g.globalCompositeOperation = "lighter";
   const D = Math.max(w, h);
-  BLOBS.forEach((b, i) => {
-    const x = (b.x + Math.sin(t * b.sp + i) * 0.12 + (cx / w - 0.5) * q * 0.3) * w;
-    const y = (b.y + Math.cos(t * b.sp * 1.3 + i * 2) * 0.1) * h;
-    const r = b.r * D * (0.8 + q * 0.5);
-    const gr = g.createRadialGradient(x, y, 0, x, y, r);
-    gr.addColorStop(0, `rgba(${b.c.join(",")},0.36)`);
-    gr.addColorStop(0.5, `rgba(${b.c.join(",")},0.1)`);
-    gr.addColorStop(1, `rgba(${b.c.join(",")},0)`);
-    g.fillStyle = gr;
-    g.fillRect(0, 0, w, h);
-  });
-  // light rays from the card
+
+  // Scaled pre-rendered blobs from 1/3 resolution offscreen canvas
+  const bc = getBlobCanvas(w, h, D);
+  g.drawImage(bc, 0, 0, w, h);
+
+  // Pre-rendered light-ray fan rotated with drawImage
+  const fan = getFanCanvas(D);
   g.save();
   g.translate(cx, cy);
   g.rotate(t * 0.05);
-  for (let k = 0; k < 14; k++) {
-    g.rotate((Math.PI * 2) / 14);
-    const lg = g.createLinearGradient(0, 0, D, 0);
-    lg.addColorStop(0, `rgba(160,220,255,${0.06 + 0.08 * q})`);
-    lg.addColorStop(1, "rgba(160,220,255,0)");
-    g.fillStyle = lg;
-    g.beginPath();
-    g.moveTo(0, 0);
-    g.lineTo(D, -D * 0.035);
-    g.lineTo(D, D * 0.035);
-    g.closePath();
-    g.fill();
-  }
+  g.globalAlpha = 0.5 + 0.5 * q;
+  g.drawImage(fan, -D, -D);
   g.restore();
-  // warp streaks
+
+  // Batched warp streaks (3 alpha buckets)
   if (warp > 0) {
     g.lineCap = "round";
-    for (const s of WARP) {
+    const warpBuckets = [new Path2D(), new Path2D(), new Path2D()];
+    for (let i = 0; i < WARP.length; i++) {
+      const s = WARP[i];
       const z = (s.z + t * 0.25 * s.v * (0.4 + warp * 2.2)) % 1;
       const r0 = Math.pow(z, 2.2) * D * 0.75;
       const r1 = r0 + 6 + z * 120 * warp;
       const ca = Math.cos(s.a), sa = Math.sin(s.a);
-      g.strokeStyle = `rgba(200,235,255,${z * 0.7 * warp})`;
-      g.lineWidth = 0.6 + z * 2;
-      g.beginPath();
-      g.moveTo(cx + ca * r0, cy + sa * r0);
-      g.lineTo(cx + ca * r1, cy + sa * r1);
-      g.stroke();
+      const b = Math.min(2, Math.floor(z * 3));
+      warpBuckets[b].moveTo(cx + ca * r0, cy + sa * r0);
+      warpBuckets[b].lineTo(cx + ca * r1, cy + sa * r1);
+    }
+    const warpAlphas = [0.2 * warp, 0.45 * warp, 0.7 * warp];
+    for (let b = 0; b < 3; b++) {
+      g.strokeStyle = `rgba(200,235,255,${warpAlphas[b]})`;
+      g.lineWidth = 1 + b * 0.8;
+      g.stroke(warpBuckets[b]);
     }
   }
   g.globalCompositeOperation = "source-over";
@@ -118,6 +164,8 @@ export default function TestimonialsScene() {
   useScene(ref, {
     name: "testimonials",
     length: 3.8,
+    ambient: true,
+    live: true,
     render(p, t, mode) {
       if (mode !== "anim") return;
       const f = eio(seg(p, 0, 0.5));
@@ -132,8 +180,11 @@ export default function TestimonialsScene() {
       const [vx, vy] = toView(X + 260, Y + 164);
       const c = cv.current;
       if (c && p < 0.62) {
-        const { g, w, h } = fitCanvas(c);
-        drawAurora(g, w, h, t, seg(p, 0, 0.5), seg(p, 0.05, 0.3) * (1 - seg(p, 0.38, 0.5)), vx, vy);
+        const fc = fitCanvas(c);
+        if (fc) {
+          const { g, w, h } = fc;
+          drawAurora(g, w, h, t, seg(p, 0, 0.5), seg(p, 0.05, 0.3) * (1 - seg(p, 0.38, 0.5)), vx, vy);
+        }
       }
       const m = getMetrics();
       const rr = eio(seg(p, 0.36, 0.56)) * Math.hypot(m.W, m.H) * 1.05;
@@ -146,7 +197,7 @@ export default function TestimonialsScene() {
       const RZ = lerp(lerp(-30, -6, f), 6, st) + Math.sin(t * 1.5) * 1.5;
       css(card.current, {
         opacity: mob ? 1 - seg(p, 0.56, 0.66) : 1,
-        transform: `translate(${X}px, ${Y + Math.sin(t * 2) * 6}px) perspective(1400px) rotateX(${RX}deg) rotateY(${RY}deg) rotateZ(${RZ}deg) scale(${Sc})`,
+        transform: `translate3d(${X}px, ${Y + Math.sin(t * 2) * 6}px, 0) perspective(1400px) rotateX(${RX}deg) rotateY(${RY}deg) rotateZ(${RZ}deg) scale(${Sc})`,
       });
       const k = [0, 1, 2].map((i) => eo(seg(p, 0.5 + i * 0.05, 0.64 + i * 0.05)));
       rv(eyebrow.current, k[0], 20);
@@ -159,7 +210,7 @@ export default function TestimonialsScene() {
       const slide = eio(seg(p, 0.64, 0.97));
       const x0 = mob ? 24 : 140;
       const x = lerp(x0, Math.min(x0, ax(mob ? 406 : 1780, 1) - total), slide);
-      css(track.current, { transform: `translateX(${x}px)` });
+      css(track.current, { transform: `translate3d(${x}px, 0, 0)` });
       tcards.current.forEach((n, i) => {
         const ki = eo(seg(p, 0.56 + Math.min(i, 3) * 0.03, 0.68 + Math.min(i, 3) * 0.03));
         rv(n, ki, 70);

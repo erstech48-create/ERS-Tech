@@ -126,45 +126,69 @@ export default function BuildScene() {
       shards.current.forEach((s, i) => {
         const a = (i / 14) * Math.PI * 2;
         const d = eo(ex) * lerp(160, 320, ((i * 7) % 5) / 5);
+        const tx = Math.cos(a) * d;
+        const ty = Math.sin(a) * d;
         css(s, {
-          left: `${L.sx - 13 + Math.cos(a) * d}px`,
-          top: `${L.sy - 13 + Math.sin(a) * d}px`,
+          left: `${L.sx - 13}px`,
+          top: `${L.sy - 13}px`,
           opacity: ex > 0 ? 1 - seg(p, 0.15, 0.24) : 0,
-          transform: `rotate(${ex * 300 + i * 20}deg) scale(${1 - ex * 0.4})`,
+          transform: `translate3d(${tx}px, ${ty}px, 0) rotate(${ex * 300 + i * 20}deg) scale(${1 - ex * 0.4})`,
         });
       });
 
       const dx = L.dx;
       const dy = lerp(L.dy0, L.dy1, eo(seg(p, 0.13, 0.33)));
       const on = seg(p, 0.12, 0.14);
-      css(R.dash, { left: `${dx}px`, top: `${dy}px`, opacity: on });
+      css(R.dash, {
+        left: `${dx}px`,
+        top: `${L.dy1}px`,
+        opacity: on,
+        transform: `translate3d(0, ${dy - L.dy1}px, 0)`,
+      });
       const ret = seg(p, 0.34, 0.42);
+      const craneMaxH = Math.max(1, L.dy1 - L.crane);
+      const craneH = Math.max(0, lerp(dy - L.crane, 0, eio(ret)));
       css(R.crane, {
         left: `${dx + 410}px`,
         top: `${L.crane}px`,
-        height: `${Math.max(0, lerp(dy - L.crane, 0, eio(ret)))}px`,
+        height: `${craneMaxH}px`,
+        transformOrigin: "top",
+        transform: `scaleY(${craneH / craneMaxH})`,
         opacity: on * (1 - seg(p, 0.4, 0.43)),
       });
       const col = seg(p, 0.36, 0.5);
       css(R.col, { opacity: col });
       css(R.wire, { opacity: 1 - col * 0.9 });
       R.dash?.querySelectorAll(".hs-bar").forEach((b, i) => {
-        b.dataset.hs = "1";
-        b.style.height = `${+b.dataset.h * eo(seg(p, 0.42 + i * 0.008, 0.56 + i * 0.008))}px`;
+        css(b, {
+          transformOrigin: "bottom",
+          transform: `scaleY(${eo(seg(p, 0.42 + i * 0.008, 0.56 + i * 0.008))})`,
+        });
       });
 
       const ph = eo(seg(p, 0.48, 0.62));
+      const phX = lerp(L.px0 - L.px1, 0, ph);
+      const phY = lerp(L.py0 - L.py1, 0, ph);
       css(R.phone, {
-        left: `${lerp(L.px0, L.px1, ph)}px`,
-        top: `${lerp(L.py0, L.py1, ph)}px`,
-        transform: `rotate(${lerp(-14, -4, ph)}deg)`,
+        left: `${L.px1}px`,
+        top: `${L.py1}px`,
+        transform: `translate3d(${phX}px, ${phY}px, 0) rotate(${lerp(-14, -4, ph)}deg)`,
         opacity: seg(p, 0.48, 0.5),
       });
 
       const dk = eo(seg(p, 0.6, 0.66));
-      css(R.deploy, { left: `${dx}px`, top: `${L.depY + (1 - dk) * 40}px`, opacity: dk });
+      css(R.deploy, {
+        left: `${dx}px`,
+        top: `${L.depY}px`,
+        transform: `translate3d(0, ${(1 - dk) * 40}px, 0)`,
+        opacity: dk,
+      });
       const pr = eio(seg(p, 0.64, 0.8));
-      css(R.fill, { width: `${pr * 100}%` });
+      css(R.fill, {
+        width: "100%",
+        transformOrigin: "left",
+        transform: `scaleX(${pr})`,
+      });
       if (R.pct) R.pct.textContent = `${Math.round(pr * 100)}%`;
       if (R.dtxt) R.dtxt.textContent = pr >= 1 ? "Deployed to production" : "Deploying to production";
       const lv = seg(p, 0.8, 0.86);

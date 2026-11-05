@@ -32,15 +32,8 @@
   margin: 0 auto;
   padding: 0 20px;
 }
-.eh-logo {
-  display: flex;
-  align-items: center;
-  flex: none;
-}
-.eh-logo img {
-  width: 112px;
-  height: auto;
-}
+.eh-logo { display: flex; align-items: center; flex: none; width: 112px; }
+.eh-logo img { width: 112px !important; height: auto !important; max-width: none; }
 
 /* desktop nav */
 .eh-nav {
@@ -339,8 +332,9 @@ html.eh-locked body {
     height: 82px;
     padding: 0 32px;
   }
+  .eh-logo { width: 125px; }
   .eh-logo img {
-    width: 125px;
+    width: 125px !important;
   }
   .eh-nav,
   .eh-cta {

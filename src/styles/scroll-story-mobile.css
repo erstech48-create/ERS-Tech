@@ -497,6 +497,7 @@ html.hs-anim.hs-m .hs-chain-head::before {
   top: -40px;
   bottom: -46px;
   background: linear-gradient(180deg, #041138 0%, #041138 78%, rgba(4, 17, 56, 0) 100%);
+  opacity: var(--hs-head-bg, 0);
 }
 html.hs-anim.hs-m .hs-chain-head {
   z-index: 2;

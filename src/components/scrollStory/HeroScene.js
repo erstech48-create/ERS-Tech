@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useScene, fitCanvas, toView, getMetrics, ax, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
+import { useScene, fitCanvas, radial, toView, getMetrics, ax, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
 import { LAND_DOTS_B64 } from "./landDots";
 
 const D2R = Math.PI / 180;
@@ -74,32 +74,61 @@ function drawStars(g, w, h, t, alpha) {
   }
 }
 
+let cachedGrads = null;
+let lastCx = -999, lastCy = -999, lastR = -999;
+function getGradients(g, cx, cy, R) {
+  if (
+    !cachedGrads ||
+    Math.abs(cx - lastCx) > 1 ||
+    Math.abs(cy - lastCy) > 1 ||
+    Math.abs(R - lastR) > 1
+  ) {
+    lastCx = cx;
+    lastCy = cy;
+    lastR = R;
+    const atmo = radial(g, cx, cy, R * 0.92, cx, cy, R * 1.42);
+    atmo.addColorStop(0, "rgba(64,170,255,0.55)");
+    atmo.addColorStop(0.18, "rgba(38,140,237,0.26)");
+    atmo.addColorStop(0.5, "rgba(30,90,220,0.08)");
+    atmo.addColorStop(1, "rgba(30,90,220,0)");
+
+    const ocean = radial(g, cx - R * 0.42, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
+    ocean.addColorStop(0, "#1b4aa6");
+    ocean.addColorStop(0.45, "#0b2a6e");
+    ocean.addColorStop(0.85, "#05153f");
+    ocean.addColorStop(1, "#030d2a");
+
+    const sheen = radial(g, cx - R * 0.45, cy - R * 0.45, 0, cx - R * 0.45, cy - R * 0.45, R * 0.9);
+    sheen.addColorStop(0, "rgba(160,215,255,0.16)");
+    sheen.addColorStop(1, "rgba(160,215,255,0)");
+
+    const rim = radial(g, cx, cy, R * 0.82, cx, cy, R);
+    rim.addColorStop(0, "rgba(80,190,255,0)");
+    rim.addColorStop(1, "rgba(110,205,255,0.45)");
+
+    cachedGrads = { atmo, ocean, sheen, rim };
+  }
+  return cachedGrads;
+}
+
 function drawGlobe(g, w, h, o) {
   const { cx, cy, R, rot, t, fade, conv, flash, ccx, ccy, small } = o;
   g.clearRect(0, 0, w, h);
   drawStars(g, w, h, t, o.stars ?? 1);
+  if (!(R > 1) || !isFinite(R)) { g.clearRect(0, 0, w, h); return; }
   if (fade > 0.01) {
     g.save();
     g.globalAlpha = fade;
+    const grads = getGradients(g, cx, cy, R);
     // atmosphere
-    let gr = g.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.42);
-    gr.addColorStop(0, "rgba(64,170,255,0.55)");
-    gr.addColorStop(0.18, "rgba(38,140,237,0.26)");
-    gr.addColorStop(0.5, "rgba(30,90,220,0.08)");
-    gr.addColorStop(1, "rgba(30,90,220,0)");
-    g.fillStyle = gr;
+    g.fillStyle = grads.atmo;
     g.beginPath();
-    g.arc(cx, cy, R * 1.42, 0, 7);
+    g.arc(cx, cy, Math.max(0, R * 1.42), 0, 7);
     g.fill();
     // ocean body with lighting
-    gr = g.createRadialGradient(cx - R * 0.42, cy - R * 0.4, R * 0.05, cx, cy, R * 1.02);
-    gr.addColorStop(0, "#1b4aa6");
-    gr.addColorStop(0.45, "#0b2a6e");
-    gr.addColorStop(0.85, "#05153f");
-    gr.addColorStop(1, "#030d2a");
-    g.fillStyle = gr;
+    g.fillStyle = grads.ocean;
     g.beginPath();
-    g.arc(cx, cy, R, 0, 7);
+    g.arc(cx, cy, Math.max(0, R), 0, 7);
     g.fill();
 
     const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(TILT), stt = Math.sin(TILT);
@@ -152,26 +181,20 @@ function drawGlobe(g, w, h, o) {
     });
 
     // specular sheen + night side + fresnel rim
-    gr = g.createRadialGradient(cx - R * 0.45, cy - R * 0.45, 0, cx - R * 0.45, cy - R * 0.45, R * 0.9);
-    gr.addColorStop(0, "rgba(160,215,255,0.16)");
-    gr.addColorStop(1, "rgba(160,215,255,0)");
-    g.fillStyle = gr;
+    g.fillStyle = grads.sheen;
     g.beginPath();
-    g.arc(cx, cy, R, 0, 7);
+    g.arc(cx, cy, Math.max(0, R), 0, 7);
     g.fill();
-    gr = g.createLinearGradient(cx - R * 0.3, cy - R * 0.3, cx + R, cy + R);
-    gr.addColorStop(0, "rgba(2,8,28,0)");
-    gr.addColorStop(1, "rgba(2,8,28,0.38)");
-    g.fillStyle = gr;
+    const grL = g.createLinearGradient(cx - R * 0.3, cy - R * 0.3, cx + R, cy + R);
+    grL.addColorStop(0, "rgba(2,8,28,0)");
+    grL.addColorStop(1, "rgba(2,8,28,0.38)");
+    g.fillStyle = grL;
     g.beginPath();
-    g.arc(cx, cy, R, 0, 7);
+    g.arc(cx, cy, Math.max(0, R), 0, 7);
     g.fill();
-    gr = g.createRadialGradient(cx, cy, R * 0.82, cx, cy, R);
-    gr.addColorStop(0, "rgba(80,190,255,0)");
-    gr.addColorStop(1, "rgba(110,205,255,0.45)");
-    g.fillStyle = gr;
+    g.fillStyle = grads.rim;
     g.beginPath();
-    g.arc(cx, cy, R, 0, 7);
+    g.arc(cx, cy, Math.max(0, R), 0, 7);
     g.fill();
 
     // arcs from HQ with travelling comets
@@ -224,7 +247,7 @@ function drawGlobe(g, w, h, o) {
           g.strokeStyle = `rgba(120,210,255,${0.7 * (1 - ph)})`;
           g.lineWidth = 1.2;
           g.beginPath();
-          g.arc(end[0], end[1], 3 + ph * 12, 0, 7);
+          g.arc(end[0], end[1], Math.max(0, 3 + ph * 12), 0, 7);
           g.stroke();
           g.fillStyle = "#bfeaff";
           g.beginPath();
@@ -236,7 +259,7 @@ function drawGlobe(g, w, h, o) {
     const [hx, hy, hz] = rotate(hq[0], hq[1], hq[2], cr, sr, ct, stt);
     if (hz > 0) {
       const px = cx + hx * R, py = cy - hy * R;
-      const glow = g.createRadialGradient(px, py, 0, px, py, 26);
+      const glow = radial(g, px, py, 0, px, py, 26);
       glow.addColorStop(0, "rgba(255,255,255,0.9)");
       glow.addColorStop(0.25, "rgba(120,210,255,0.5)");
       glow.addColorStop(1, "rgba(120,210,255,0)");
@@ -247,7 +270,7 @@ function drawGlobe(g, w, h, o) {
       g.strokeStyle = "rgba(255,255,255,.55)";
       g.lineWidth = 1.2;
       g.beginPath();
-      g.arc(px, py, 10 + 5 * Math.sin(t * 3), 0, 7);
+      g.arc(px, py, Math.max(0, 10 + 5 * Math.sin(t * 3)), 0, 7);
       g.stroke();
       g.fillStyle = "#fff";
       g.font = `600 ${small ? 10 : 13}px Poppins, sans-serif`;
@@ -273,7 +296,7 @@ function drawGlobe(g, w, h, o) {
     }
   }
   if (flash > 0) {
-    const gr = g.createRadialGradient(ccx, ccy, 0, ccx, ccy, Math.max(w, h) * 0.3);
+    const gr = radial(g, ccx, ccy, 0, ccx, ccy, Math.max(w, h) * 0.3);
     gr.addColorStop(0, `rgba(255,255,255,${flash})`);
     gr.addColorStop(0.3, `rgba(38,175,237,${flash * 0.6})`);
     gr.addColorStop(1, "rgba(38,175,237,0)");
@@ -296,11 +319,14 @@ export default function HeroScene() {
     name: "hero",
     length: 2.2,
     ambient: true,
+    live: true,
     staticP: 0,
     render(p, t, mode) {
       const c = cv.current;
       if (!c) return;
-      const { g, w, h } = fitCanvas(c);
+      const fc = fitCanvas(c);
+      if (!fc) return;
+      const { g, w, h } = fc;
       if (mode === "anim") {
         const m = getMetrics();
         const z = eio(seg(p, 0.15, 0.5));

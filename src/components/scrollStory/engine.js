@@ -23,27 +23,45 @@ const FOLLOW = 7;
 
 /* ---------------- inline style helpers (tracked so they can be undone) ---------------- */
 const kebab = (k) => k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+export function roundVal(k, v) {
+  if (typeof v === "number") {
+    if (k === "opacity") return Math.round(v * 1000) / 1000;
+    if (k === "transform" || k.includes("scale")) return Math.round(v * 10000) / 10000;
+    return Math.round(v * 10) / 10;
+  }
+  return v;
+}
 /** Set inline styles; only the properties set here are removed on teardown. */
 export function css(node, styles) {
   if (!node) return;
   if (!node.__hsKeys) node.__hsKeys = new Set();
-  Object.keys(styles).forEach((k) => {
-    node.__hsKeys.add(k);
-    node.style[k] = styles[k];
-  });
+  if (!node.__hsLast) node.__hsLast = {};
+  for (const k in styles) {
+    let v = styles[k];
+    if (typeof v === "number") v = roundVal(k, v);
+    if (node.__hsLast[k] !== v) {
+      node.__hsLast[k] = v;
+      node.__hsKeys.add(k);
+      node.style[k] = v;
+    }
+  }
   node.dataset.hs = "1";
 }
 /** Fade + slide helper: k = 0 hidden, 1 visible. */
 export function rv(node, k, dy = 40, dx = 0, extra = "") {
+  const op = Math.round(k * 1000) / 1000;
+  const tx = Math.round(dx * (1 - k) * 10) / 10;
+  const ty = Math.round(dy * (1 - k) * 10) / 10;
   css(node, {
-    opacity: k,
-    transform: `translate(${dx * (1 - k)}px, ${dy * (1 - k)}px) ${extra}`,
+    opacity: op,
+    transform: `translate3d(${tx}px, ${ty}px, 0) ${extra}`.trim(),
   });
 }
 function clearNode(n) {
   if (n.__hsKeys) {
     n.__hsKeys.forEach((k) => n.style.removeProperty(kebab(k)));
     n.__hsKeys = null;
+    n.__hsLast = null;
   }
   delete n.dataset.hs;
 }
@@ -75,9 +93,13 @@ function updateMetrics() {
   if (Math.abs(nav - metrics.nav) <= 2) {
     nav = metrics.nav;
   }
+  if (!W || !H || H - nav < 120) {   // viewport not ready yet (DevTools / first frame)
+    requestAnimationFrame(updateMetrics);
+    return;                           // keep the previous metrics
+  }
   const SW = mobile ? STAGE_W_M : STAGE_W;
   const SH = mobile ? STAGE_H_M : STAGE_H;
-  const s = Math.min(W / SW, (H - nav) / SH);
+  const s = Math.max(0.05, Math.min(W / SW, (H - nav) / SH));
   const sw = clamp(W / s, SW, mobile ? MAX_STAGE_W_M : MAX_STAGE_W);
   const ox = (W - sw * s) / 2;
   const oy = nav + (H - nav - SH * s) / 2;
@@ -98,7 +120,24 @@ function bindMetrics() {
   metricsBound = true;
   ScrollTrigger.config({ ignoreMobileResize: true });
   updateMetrics();
-  window.addEventListener("resize", updateMetrics);
+  let lastW = window.innerWidth, lastMobile = window.innerWidth < 1024, rT;
+  const onResize = () => {
+    clearTimeout(rT);
+    rT = setTimeout(() => {
+      const W = window.innerWidth, mobile = W < 1024;
+      if (mobile !== lastMobile) {            // crossed the desktop/mobile breakpoint
+        sessionStorage.setItem("hs-scroll-ratio",
+          String(window.scrollY / Math.max(1, document.documentElement.scrollHeight)));
+        window.location.reload();             // clean start for the other layout
+        return;
+      }
+      if (W !== lastW || !mobile) {           // ignore height-only changes on phones
+        lastW = W; updateMetrics(); ScrollTrigger.refresh();
+      }
+    }, 250);
+  };
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", onResize);
   ScrollTrigger.addEventListener("refreshInit", updateMetrics);
 }
 
@@ -122,10 +161,25 @@ const tickers = new Set();
 let tickerBound = false;
 const T0 = typeof performance !== "undefined" ? performance.now() : 0;
 let lastT = 0;
+let isTabVisible = true;
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    isTabVisible = document.visibilityState === "visible";
+  });
+}
+let lastScrollTime = 0;
+if (typeof window !== "undefined") {
+  window.addEventListener("scroll", () => {
+    lastScrollTime = performance.now();
+  }, { passive: true });
+}
+export const isUserScrolling = () => (performance.now() - lastScrollTime) < 180;
+
 function bindTicker() {
   if (tickerBound) return;
   tickerBound = true;
   gsap.ticker.add(() => {
+    if (!isTabVisible) return;
     const t = (performance.now() - T0) / 1000;
     const dt = Math.min(0.1, Math.max(0, t - lastT));
     lastT = t;
@@ -172,7 +226,8 @@ export function useScene(ref, opts) {
       const tail = opts.tail || 0;
       let target = 0;
       let shown = 0;
-      const lead = opts.wipeIn ? el.parentElement?.querySelector(":scope > .hs-wipe-lead") : null;
+      const wrap = opts.wipeIn ? (el.closest(".hs-wipe-wrap") || el) : null;
+      const lead = wrap ? wrap.querySelector(".hs-wipe-lead") : null;
 
       const st = ScrollTrigger.create({
         trigger: el,
@@ -181,6 +236,7 @@ export function useScene(ref, opts) {
         pin: true,
         pinSpacing: true,
         anticipatePin: 1,
+        fastScrollEnd: true,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           target = clamp((self.progress * (len + tail)) / len);
@@ -188,6 +244,7 @@ export function useScene(ref, opts) {
         onRefresh: (self) => {
           target = clamp((self.progress * (len + tail)) / len);
           shown = target;
+          opts.render(shown, performance.now() / 1000, "anim", el);
         },
       });
       registry[opts.name] = { st, len };
@@ -203,16 +260,24 @@ export function useScene(ref, opts) {
         };
         setClip(0);
         wipe = ScrollTrigger.create({
-          trigger: el,
+          trigger: wrap || el,
           start: "top bottom",
           end: "top top",
+          invalidateOnRefresh: true,
           onUpdate: (self) => setClip(self.progress),
+          onRefresh: (self) => {
+            if (self.progress >= 1) setClip(1);
+            else if (self.progress <= 0) setClip(0);
+            else setClip(self.progress);
+          },
           onLeave: () => setClip(1),
           onEnterBack: (self) => setClip(self.progress),
           onLeaveBack: () => setClip(0),
         });
       }
 
+      let lastRendered = -999;
+      let idleFrame = 0;
       const remove = addTicker((t, dt) => {
         const y = window.scrollY;
         const H = window.innerHeight;
@@ -221,8 +286,20 @@ export function useScene(ref, opts) {
           return;
         }
         // ease the shown progress toward the scroll target (frame-rate independent)
-        shown += (target - shown) * (1 - Math.exp(-dt * FOLLOW));
+        const follow = metrics.mobile ? 10 : 12;
+        shown += (target - shown) * (1 - Math.exp(-dt * follow));
         if (Math.abs(target - shown) < 0.0005) shown = target;
+
+        const isMoving = Math.abs(shown - lastRendered) >= 0.0002;
+        if (!isMoving && !opts.live) {
+          return;
+        }
+        if (opts.live && !isMoving && !isUserScrolling()) {
+          idleFrame++;
+          if (idleFrame % 2 !== 0) return;
+        }
+
+        lastRendered = shown;
         opts.render(shown, t, "anim", el);
       });
       opts.render(0, 0, "anim", el);
@@ -262,14 +339,22 @@ export function useScene(ref, opts) {
   }, []);
 }
 
+export function radial(g, x0, y0, r0, x1, y1, r1) {
+  return g.createRadialGradient(x0, y0, Math.max(0, r0), x1, y1, Math.max(0.01, r1));
+}
+
 /** Size a canvas to its CSS box (capped DPR) and return the 2D context + size. */
 export function fitCanvas(cv) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  if (!cv || cv.clientWidth < 2 || cv.clientHeight < 2) return null;
+  const maxDpr = metrics.mobile ? 1 : 1.25;
+  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
   const w = cv.clientWidth;
   const h = cv.clientHeight;
-  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
-    cv.width = Math.round(w * dpr);
-    cv.height = Math.round(h * dpr);
+  const pw = Math.round(w * dpr);
+  const ph = Math.round(h * dpr);
+  if (cv.width !== pw || cv.height !== ph) {
+    cv.width = pw;
+    cv.height = ph;
   }
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);

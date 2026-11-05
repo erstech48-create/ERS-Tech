@@ -41,13 +41,13 @@ export default function PortfolioScene() {
       const gp = mob ? 18 : GAP;
       const total = PROJECTS.length * (cw + gp) - gp;
       const x = mob ? lerp(24, ax(406, 1) - total, k) : lerp(140, ax(1780, 1) - total, k);
-      css(track.current, { transform: `translateX(${x}px)` });
+      css(track.current, { transform: `translate3d(${x}px, 0, 0)` });
       css(ln.current, { width: `${16.6 + k * 83.4}%` });
       if (cnt.current) cnt.current.textContent = `0${1 + Math.min(5, Math.floor(k * 6))}`;
       cards.current.forEach((c, i) => {
         const cx = x + i * (cw + gp) + cw / 2;
         const d = Math.min(Math.abs(cx - ax(mob ? 215 : 960, 0.5)) / (mob ? 400 : 1200), 1);
-        css(c, { transform: `translateY(${d * (mob ? 16 : 30)}px)` });
+        css(c, { transform: `translate3d(0, ${d * (mob ? 16 : 30)}px, 0)` });
       });
     },
   });
@@ -77,7 +77,7 @@ export default function PortfolioScene() {
             {PROJECTS.map((pr, i) => (
               <article key={pr.slug} ref={(n) => (cards.current[i] = n)} className="hs-pc">
                 <Link href={`/portfolio/${pr.slug}`} className="hs-pc-top">
-                  <Image src={pr.img} alt={`${pr.name} project mockup`} fill sizes="(min-width:1024px) 640px, 85vw" />
+                  <Image src={pr.img} alt={`${pr.name} project mockup`} fill sizes="(min-width:1024px) 640px, 85vw" decoding="async" />
                 </Link>
                 <div className="hs-pc-body">
                   <h3>

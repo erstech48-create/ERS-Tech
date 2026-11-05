@@ -52,6 +52,7 @@ export default function TrustScene() {
     name: "trust",
     length: 1.9,
     ambient: true,
+    live: true,
     render(p, t, mode) {
       const R = r.current;
       if (mode === "anim") {
@@ -60,7 +61,7 @@ export default function TrustScene() {
         );
         stats.current.forEach((s, i) => {
           const k = eo(seg(p, 0.36 + i * 0.05, 0.56 + i * 0.05));
-          css(s, { opacity: k, transform: `translateY(${(1 - k) * 70}px)` });
+          css(s, { opacity: k, transform: `translate3d(0, ${(1 - k) * 70}px, 0)` });
           const c = eo(seg(p, 0.42 + i * 0.05, 0.82));
           if (nums.current[i]) nums.current[i].textContent = Math.round(STATS[i].to * c);
           css(bars.current[i], { transform: `scaleX(${STATS[i].fill * c})` });
@@ -68,13 +69,13 @@ export default function TrustScene() {
         rv(R.mqHead, eo(seg(p, 0.55, 0.68)), 20);
         css(R.mq, { opacity: eo(seg(p, 0.58, 0.72)) });
         css(R.rings, { transform: `rotate(${t * 12}deg)` });
-        css(R.orbA, { transform: `translate(${Math.sin(t * 0.4) * 40}px, ${Math.cos(t * 0.3) * 30}px)` });
+        css(R.orbA, { transform: `translate3d(${Math.sin(t * 0.4) * 40}px, ${Math.cos(t * 0.3) * 30}px, 0)` });
       } else {
         nums.current.forEach((n, i) => n && (n.textContent = STATS[i].to));
         bars.current.forEach((b, i) => css(b, { transform: `scaleX(${STATS[i].fill})` }));
       }
       const tw = track.current ? track.current.scrollWidth / 2 : 2000;
-      css(track.current, { transform: `translateX(${-((t * 60) % tw)}px)` });
+      css(track.current, { transform: `translate3d(${-((t * 60) % tw)}px, 0, 0)` });
     },
   });
 
@@ -125,7 +126,7 @@ export default function TrustScene() {
             {[0, 1].flatMap((rr) =>
               LOGOS.map((l, i) => (
                 <div key={`${rr}-${i}`} className="hs-logo-pill" aria-hidden={rr > 0}>
-                  <Image src={l.src} alt={rr === 0 ? `${l.alt} logo` : ""} sizes="240px" />
+                  <Image src={l.src} alt={rr === 0 ? `${l.alt} logo` : ""} sizes="240px" decoding="async" />
                 </div>
               ))
             )}

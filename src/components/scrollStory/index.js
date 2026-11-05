@@ -29,6 +29,11 @@ export default function ScrollStory() {
       root.classList.add("hs-ready"); // NEVER remove this class anywhere
       root.classList.remove("hs-loading");
       ScrollTrigger.refresh();
+      const r = parseFloat(sessionStorage.getItem("hs-scroll-ratio") || "");
+      if (!isNaN(r)) {
+        sessionStorage.removeItem("hs-scroll-ratio");
+        window.scrollTo(0, r * document.documentElement.scrollHeight);
+      }
       setTimeout(() => {
         root.classList.add("hs-entered");
       }, 1200);
