@@ -10,36 +10,58 @@ export const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3)
 export const eo = (x) => 1 - Math.pow(1 - x, 3);
 export const lerp = (a, b, t) => a + (b - a) * t;
 
-export const STAGE_W = 1920; // design width
-export const STAGE_H = 984; // design height (viewport minus navbar)
+export const STAGE_W = 1920; // desktop design width
+export const STAGE_H = 984; // desktop design height (viewport minus navbar)
 const MAX_STAGE_W = 2500; // wider than this, the stage is centred again
+// Phones/tablets (< 1024px) use a portrait stage with their own layout
+export const STAGE_W_M = 430;
+export const STAGE_H_M = 860;
+const MAX_STAGE_W_M = 560;
 export const DESKTOP_MQ = "(min-width: 1024px)";
 // Higher = scroll animations follow the scrollbar more tightly.
 const FOLLOW = 7;
 
 /* ---------------- inline style helpers (tracked so they can be undone) ---------------- */
 const kebab = (k) => k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+export function roundVal(k, v) {
+  if (typeof v === "number") {
+    if (k === "opacity") return Math.round(v * 1000) / 1000;
+    if (k === "transform" || k.includes("scale")) return Math.round(v * 10000) / 10000;
+    return Math.round(v * 10) / 10;
+  }
+  return v;
+}
 /** Set inline styles; only the properties set here are removed on teardown. */
 export function css(node, styles) {
   if (!node) return;
   if (!node.__hsKeys) node.__hsKeys = new Set();
-  Object.keys(styles).forEach((k) => {
-    node.__hsKeys.add(k);
-    node.style[k] = styles[k];
-  });
+  if (!node.__hsLast) node.__hsLast = {};
+  for (const k in styles) {
+    let v = styles[k];
+    if (typeof v === "number") v = roundVal(k, v);
+    if (node.__hsLast[k] !== v) {
+      node.__hsLast[k] = v;
+      node.__hsKeys.add(k);
+      node.style[k] = v;
+    }
+  }
   node.dataset.hs = "1";
 }
 /** Fade + slide helper: k = 0 hidden, 1 visible. */
 export function rv(node, k, dy = 40, dx = 0, extra = "") {
+  const op = Math.round(k * 1000) / 1000;
+  const tx = Math.round(dx * (1 - k) * 10) / 10;
+  const ty = Math.round(dy * (1 - k) * 10) / 10;
   css(node, {
-    opacity: k,
-    transform: `translate(${dx * (1 - k)}px, ${dy * (1 - k)}px) ${extra}`,
+    opacity: op,
+    transform: `translate3d(${tx}px, ${ty}px, 0) ${extra}`.trim(),
   });
 }
 function clearNode(n) {
   if (n.__hsKeys) {
     n.__hsKeys.forEach((k) => n.style.removeProperty(kebab(k)));
     n.__hsKeys = null;
+    n.__hsLast = null;
   }
   delete n.dataset.hs;
 }
@@ -51,38 +73,71 @@ function clearMarked(root) {
 /* ---------------- stage metrics ---------------- */
 // s  = scale, sw = stage width in design px (>= 1920 on wide screens),
 // dx = sw - 1920 (extra width), ox/oy = stage offset in the viewport.
-let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 82 };
+let metrics = { s: 1, sw: STAGE_W, dx: 0, ox: 0, oy: 0, W: 1920, H: 1080, nav: 82, mobile: false };
+/** true when the portrait (phone/tablet) stage is active */
+export const isMobile = () => metrics.mobile;
+/** pick a value for desktop or mobile stage */
+export const MV = (desktop, mobile) => (metrics.mobile ? mobile : desktop);
 export const getMetrics = () => metrics;
 
 function updateMetrics() {
   if (typeof window === "undefined") return;
   const W = window.innerWidth;
-  const H = window.innerHeight;
+  let H = window.innerHeight;
+  const mobile = W < 1024;
+  // On phones the address bar changes the height while scrolling; ignore that
+  if (mobile && metrics.mobile && W === metrics.W && Math.abs(H - metrics.H) < 160) H = metrics.H;
   const navVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"));
   const navRaw = isNaN(navVar) ? 82 : navVar;
   let nav = clamp(navRaw, 56, 130);
   if (Math.abs(nav - metrics.nav) <= 2) {
     nav = metrics.nav;
   }
-  const s = Math.min(W / STAGE_W, (H - nav) / STAGE_H);
-  const sw = clamp(W / s, STAGE_W, MAX_STAGE_W);
+  if (!W || !H || H - nav < 120) {   // viewport not ready yet (DevTools / first frame)
+    requestAnimationFrame(updateMetrics);
+    return;                           // keep the previous metrics
+  }
+  const SW = mobile ? STAGE_W_M : STAGE_W;
+  const SH = mobile ? STAGE_H_M : STAGE_H;
+  const s = Math.max(0.05, Math.min(W / SW, (H - nav) / SH));
+  const sw = clamp(W / s, SW, mobile ? MAX_STAGE_W_M : MAX_STAGE_W);
   const ox = (W - sw * s) / 2;
-  const oy = nav + (H - nav - STAGE_H * s) / 2;
-  metrics = { s, sw, dx: sw - STAGE_W, ox, oy, W, H, nav };
+  const oy = nav + (H - nav - SH * s) / 2;
+  metrics = { s, sw, dx: sw - SW, ox, oy, W, H, nav, mobile };
+  document.documentElement.classList.toggle("hs-m", mobile);
   const r = document.documentElement.style;
   r.setProperty("--hs-scale", String(s));
   r.setProperty("--hs-ox", `${ox}px`);
   r.setProperty("--hs-oy", `${oy}px`);
   r.setProperty("--hs-sw", `${sw}px`);
-  r.setProperty("--hs-dx", `${sw - STAGE_W}px`);
+  r.setProperty("--hs-dx", `${sw - SW}px`);
+  r.setProperty("--hs-vh", `${H}px`);
 }
 
 let metricsBound = false;
 function bindMetrics() {
   if (metricsBound || typeof window === "undefined") return;
   metricsBound = true;
+  ScrollTrigger.config({ ignoreMobileResize: true });
   updateMetrics();
-  window.addEventListener("resize", updateMetrics);
+  let lastW = window.innerWidth, lastMobile = window.innerWidth < 1024, rT;
+  const onResize = () => {
+    clearTimeout(rT);
+    rT = setTimeout(() => {
+      const W = window.innerWidth, mobile = W < 1024;
+      if (mobile !== lastMobile) {            // crossed the desktop/mobile breakpoint
+        sessionStorage.setItem("hs-scroll-ratio",
+          String(window.scrollY / Math.max(1, document.documentElement.scrollHeight)));
+        window.location.reload();             // clean start for the other layout
+        return;
+      }
+      if (W !== lastW || !mobile) {           // ignore height-only changes on phones
+        lastW = W; updateMetrics(); ScrollTrigger.refresh();
+      }
+    }, 250);
+  };
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", onResize);
   ScrollTrigger.addEventListener("refreshInit", updateMetrics);
 }
 
@@ -106,10 +161,25 @@ const tickers = new Set();
 let tickerBound = false;
 const T0 = typeof performance !== "undefined" ? performance.now() : 0;
 let lastT = 0;
+let isTabVisible = true;
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    isTabVisible = document.visibilityState === "visible";
+  });
+}
+let lastScrollTime = 0;
+if (typeof window !== "undefined") {
+  window.addEventListener("scroll", () => {
+    lastScrollTime = performance.now();
+  }, { passive: true });
+}
+export const isUserScrolling = () => (performance.now() - lastScrollTime) < 180;
+
 function bindTicker() {
   if (tickerBound) return;
   tickerBound = true;
   gsap.ticker.add(() => {
+    if (!isTabVisible) return;
     const t = (performance.now() - T0) / 1000;
     const dt = Math.min(0.1, Math.max(0, t - lastT));
     lastT = t;
@@ -126,7 +196,7 @@ export function addTicker(fn) {
 export function scenePos(name, p) {
   const r = registry[name];
   if (!r) return null;
-  return r.st.start + p * r.len * window.innerHeight;
+  return r.st.start + p * r.len * metrics.H;
 }
 
 /**
@@ -147,7 +217,8 @@ export function useScene(ref, opts) {
     const reduced = prefersReducedMotion();
     const mm = gsap.matchMedia();
 
-    mm.add(DESKTOP_MQ, () => {
+    // Animated mode on every screen size; re-runs when crossing the 1024px breakpoint
+    mm.add({ d: DESKTOP_MQ, m: "(max-width: 1023px)" }, () => {
       if (reduced) return undefined;
       enterAnim();
       updateMetrics();
@@ -155,15 +226,17 @@ export function useScene(ref, opts) {
       const tail = opts.tail || 0;
       let target = 0;
       let shown = 0;
-      const lead = opts.wipeIn ? el.parentElement?.querySelector(":scope > .hs-wipe-lead") : null;
+      const wrap = opts.wipeIn ? (el.closest(".hs-wipe-wrap") || el) : null;
+      const lead = wrap ? wrap.querySelector(".hs-wipe-lead") : null;
 
       const st = ScrollTrigger.create({
         trigger: el,
         start: "top top",
-        end: () => "+=" + window.innerHeight * (len + tail),
+        end: () => "+=" + metrics.H * (len + tail),
         pin: true,
         pinSpacing: true,
         anticipatePin: 1,
+        fastScrollEnd: true,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           target = clamp((self.progress * (len + tail)) / len);
@@ -171,6 +244,7 @@ export function useScene(ref, opts) {
         onRefresh: (self) => {
           target = clamp((self.progress * (len + tail)) / len);
           shown = target;
+          opts.render(shown, performance.now() / 1000, "anim", el);
         },
       });
       registry[opts.name] = { st, len };
@@ -186,16 +260,24 @@ export function useScene(ref, opts) {
         };
         setClip(0);
         wipe = ScrollTrigger.create({
-          trigger: el,
+          trigger: wrap || el,
           start: "top bottom",
           end: "top top",
+          invalidateOnRefresh: true,
           onUpdate: (self) => setClip(self.progress),
+          onRefresh: (self) => {
+            if (self.progress >= 1) setClip(1);
+            else if (self.progress <= 0) setClip(0);
+            else setClip(self.progress);
+          },
           onLeave: () => setClip(1),
           onEnterBack: (self) => setClip(self.progress),
           onLeaveBack: () => setClip(0),
         });
       }
 
+      let lastRendered = -999;
+      let idleFrame = 0;
       const remove = addTicker((t, dt) => {
         const y = window.scrollY;
         const H = window.innerHeight;
@@ -204,8 +286,16 @@ export function useScene(ref, opts) {
           return;
         }
         // ease the shown progress toward the scroll target (frame-rate independent)
-        shown += (target - shown) * (1 - Math.exp(-dt * FOLLOW));
+        const follow = metrics.mobile ? 16 : 12;
+        shown += (target - shown) * (1 - Math.exp(-dt * follow));
         if (Math.abs(target - shown) < 0.0005) shown = target;
+
+        const isMoving = Math.abs(shown - lastRendered) >= 0.0001;
+        if (!isMoving && !opts.live) {
+          return;
+        }
+
+        lastRendered = shown;
         opts.render(shown, t, "anim", el);
       });
       opts.render(0, 0, "anim", el);
@@ -222,8 +312,8 @@ export function useScene(ref, opts) {
     });
 
     // Static mode: mobile, or desktop with reduced motion.
-    mm.add(`(max-width: 1023px), (prefers-reduced-motion: reduce)`, () => {
-      if (!reduced && window.matchMedia(DESKTOP_MQ).matches) return undefined;
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      if (!reduced) return undefined;
       const sp = opts.staticP ?? 1;
       opts.render(sp, 0, "static", el);
       let remove = null;
@@ -245,14 +335,22 @@ export function useScene(ref, opts) {
   }, []);
 }
 
+export function radial(g, x0, y0, r0, x1, y1, r1) {
+  return g.createRadialGradient(x0, y0, Math.max(0, r0), x1, y1, Math.max(0.01, r1));
+}
+
 /** Size a canvas to its CSS box (capped DPR) and return the 2D context + size. */
 export function fitCanvas(cv) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  if (!cv || cv.clientWidth < 2 || cv.clientHeight < 2) return null;
+  const maxDpr = metrics.mobile ? 1 : 1.25;
+  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
   const w = cv.clientWidth;
   const h = cv.clientHeight;
-  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
-    cv.width = Math.round(w * dpr);
-    cv.height = Math.round(h * dpr);
+  const pw = Math.round(w * dpr);
+  const ph = Math.round(h * dpr);
+  if (cv.width !== pw || cv.height !== ph) {
+    cv.width = pw;
+    cv.height = ph;
   }
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);

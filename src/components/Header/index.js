@@ -137,7 +137,7 @@ function Header() {
     <header ref={headerRef} className={`eh ${solid ? "eh-solid" : ""} ${menuOpen ? "eh-open" : ""}`}>
       <div className="eh-bar">
         <Link href="/" className="eh-logo" aria-label="ERS TECH home">
-          <Image src={solid ? CLogo : Logo} alt="ERS TECH Logo" width={125} height={49} priority />
+          <Image src={solid ? CLogo : Logo} alt="ERS TECH Logo" width={125} height={49} priority sizes="125px" />
         </Link>
 
         {/* Desktop navigation (>= 1024px) */}
