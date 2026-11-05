@@ -78,15 +78,23 @@ export default function TravelCube() {
     const node = ref.current;
     if (!node || prefersReducedMotion()) return undefined;
     let sy0 = window.scrollY;
+    // only touch the DOM when a value really changes (fewer style recalcs per frame)
+    const last = {};
+    const set = (k, v) => {
+      if (last[k] !== v) {
+        last[k] = v;
+        node.style[k] = v;
+      }
+    };
     return addTicker((t, dt) => {
       if (!document.documentElement.classList.contains("hs-anim")) {
-        node.style.display = "none";
+        set("display", "none");
         return;
       }
       const m0 = getMetrics();
       const pts = (m0.mobile ? KF_M : KF).map((k) => [scenePos(k[0], k[1]), ...k.slice(2)]);
       if (pts.some((p) => p[0] == null)) {
-        node.style.display = "none";
+        set("display", "none");
         return;
       }
       const yRaw = window.scrollY;
@@ -108,16 +116,16 @@ export default function TravelCube() {
       const m = getMetrics();
       const [vx, vy] = toView(x, sy);
       const px = size * m.s;
-      node.style.display = o > 0.01 ? "block" : "none";
-      node.style.opacity = o;
+      set("display", o > 0.01 ? "block" : "none");
+      set("opacity", o);
       const baseSize = 200;
       const sc = px / baseSize;
       const tx = vx - px / 2;
       const ty = vy - px / 2 - after + Math.sin(t * 2) * 8 * m.s;
-      node.style.width = `${baseSize}px`;
-      node.style.height = `${baseSize}px`;
-      node.style.transformOrigin = "top left";
-      node.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${sc}) rotate(${Math.sin(t * 1.3) * 4}deg)`;
+      set("width", `${baseSize}px`);
+      set("height", `${baseSize}px`);
+      set("transformOrigin", "top left");
+      set("transform", `translate3d(${tx}px, ${ty}px, 0) scale(${sc}) rotate(${Math.sin(t * 1.3) * 4}deg)`);
     });
   }, []);
   return (

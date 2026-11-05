@@ -45,7 +45,11 @@ export function css(node, styles) {
       node.style[k] = v;
     }
   }
-  node.dataset.hs = "1";
+  // "t" = this node is moved/faded every frame -> promoted to its own GPU layer
+  // while its scene is on screen (see .hs-on rules in scroll-story.css)
+  // (scaled nodes too: the browser re-rasters them sharp as soon as they settle)
+  const want = node.__hsLast.transform !== undefined || node.__hsLast.opacity !== undefined ? "t" : "1";
+  if (node.dataset.hs !== want) node.dataset.hs = want;
 }
 /** Fade + slide helper: k = 0 hidden, 1 visible. */
 export function rv(node, k, dy = 40, dx = 0, extra = "") {
@@ -278,14 +282,22 @@ export function useScene(ref, opts) {
       }
 
       let lastRendered = -999;
-      let idleFrame = 0;
+      let on = false;
+      const setOn = (v) => {
+        if (v === on) return;
+        on = v;
+        el.classList.toggle("hs-on", v);
+        if (lead) lead.classList.toggle("hs-on", v);
+      };
       const remove = addTicker((t, dt) => {
         const y = window.scrollY;
-        const H = window.innerHeight;
+        const H = metrics.H;
         if (y < st.start - H * 1.05 || y > st.end + H * 1.05) {
           shown = target;
+          setOn(false);
           return;
         }
+        setOn(true);
         // ease the shown progress toward the scroll target (frame-rate independent)
         const follow = metrics.mobile ? 16 : 12;
         shown += (target - shown) * (1 - Math.exp(-dt * follow));
@@ -303,6 +315,7 @@ export function useScene(ref, opts) {
 
       return () => {
         remove();
+        setOn(false);
         st.kill();
         wipe?.kill();
         delete registry[opts.name];
@@ -341,12 +354,50 @@ export function radial(g, x0, y0, r0, x1, y1, r1) {
 }
 
 /** Size a canvas to its CSS box (capped DPR) and return the 2D context + size. */
-export function fitCanvas(cv) {
-  if (!cv || cv.clientWidth < 2 || cv.clientHeight < 2) return null;
+// Canvas CSS sizes are tracked with a ResizeObserver instead of reading
+// clientWidth/clientHeight every frame (that read forced a synchronous layout
+// right after the scenes had written their styles = dropped frames).
+let canvasRO = null;
+const CANVAS_PX_BUDGET = 1600 * 1000; // ~1.6M px: enough for a crisp globe, light enough for Retina/QHD
+function canvasSize(cv) {
+  if (!cv.__hsSize) {
+    cv.__hsSize = { w: cv.clientWidth, h: cv.clientHeight };
+    if (typeof ResizeObserver !== "undefined") {
+      if (!canvasRO) {
+        canvasRO = new ResizeObserver((entries) => {
+          for (const e of entries) {
+            const b = e.contentBoxSize && e.contentBoxSize[0];
+            e.target.__hsSize = b
+              ? { w: b.inlineSize, h: b.blockSize }
+              : { w: e.contentRect.width, h: e.contentRect.height };
+          }
+        });
+      }
+      canvasRO.observe(cv);
+    } else {
+      cv.__hsSize = null; // no observer: measure every time
+      return { w: cv.clientWidth, h: cv.clientHeight };
+    }
+  }
+  return cv.__hsSize;
+}
+/**
+ * q = resolution factor for soft, full-screen background canvases
+ * (gradients/glows look identical at lower resolution and cost far less per frame).
+ */
+export function fitCanvas(cv, q = 1) {
+  if (!cv) return null;
+  const sz = canvasSize(cv);
+  if (sz.w < 2 || sz.h < 2) return null;
   const maxDpr = metrics.mobile ? 1 : 1.25;
-  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-  const w = cv.clientWidth;
-  const h = cv.clientHeight;
+  const w = sz.w;
+  const h = sz.h;
+  let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+  // Pixel budget: full-screen canvases are redrawn every frame, so on large
+  // (QHD / 4K / zoomed-out) screens the backing store is capped at ~Full HD.
+  const budget = (typeof window !== "undefined" && window.__hsPx) || CANVAS_PX_BUDGET;
+  if (w * h * dpr * dpr > budget) dpr = Math.sqrt(budget / (w * h));
+  dpr *= q;
   const pw = Math.round(w * dpr);
   const ph = Math.round(h * dpr);
   if (cv.width !== pw || cv.height !== ph) {
@@ -356,6 +407,19 @@ export function fitCanvas(cv) {
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { g, w, h };
+}
+
+/**
+ * High-refresh screens (MacBook Pro ProMotion 120Hz, 144Hz monitors) run the
+ * ticker twice as often. DOM motion keeps the full rate, but the heavy canvas
+ * redraws are capped at ~60-90 per second (the eye can't tell the difference
+ * on soft backgrounds, the GPU does half the work).
+ */
+export function canvasDue(cv) {
+  const now = performance.now();
+  if (cv.__hsDrawn && now - cv.__hsDrawn < 10) return false;
+  cv.__hsDrawn = now;
+  return true;
 }
 
 /** Convert stage coordinates to viewport pixels (anim mode). */

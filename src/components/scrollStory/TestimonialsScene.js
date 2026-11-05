@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useScene, fitCanvas, radial, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
+import { useScene, fitCanvas, canvasDue, radial, toView, getMetrics, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 import { CubeSVG } from "./Cube";
 import { REVIEWS } from "@/data/reviews";
 
@@ -28,14 +28,18 @@ const WARP = Array.from({ length: 260 }, (_, i) => ({
 
 let fanCanvas = null;
 let fanD = 0;
+// The faint light-ray fan is stored at half resolution and drawn 2x
+// (soft 12%-alpha rays: same look, 4x fewer pixels to rotate every frame).
+const FAN_RES = 0.5;
 function getFanCanvas(D) {
-  const size = Math.round(D * 2);
+  const size = Math.round(D * 2 * FAN_RES);
   if (!fanCanvas || Math.abs(fanD - D) > 20) {
     fanD = D;
     fanCanvas = document.createElement("canvas");
     fanCanvas.width = size;
     fanCanvas.height = size;
     const fg = fanCanvas.getContext("2d");
+    fg.scale(size / (D * 2), size / (D * 2));
     fg.translate(D, D);
     for (let k = 0; k < 14; k++) {
       fg.rotate((Math.PI * 2) / 14);
@@ -99,7 +103,7 @@ function drawAurora(g, w, h, t, q, warp, cx, cy) {
   g.translate(cx, cy);
   g.rotate(t * 0.05);
   g.globalAlpha = 0.5 + 0.5 * q;
-  g.drawImage(fan, -D, -D);
+  g.drawImage(fan, -D, -D, D * 2, D * 2);
   g.restore();
 
   // Batched warp streaks (3 alpha buckets)
@@ -179,8 +183,8 @@ export default function TestimonialsScene() {
       const Sc = mob ? lerp(lerp(0.3, 0.72, f), 0.26, st) : lerp(lerp(0.45, 1.35, f), 0.7, st);
       const [vx, vy] = toView(X + 260, Y + 164);
       const c = cv.current;
-      if (c && p < 0.62) {
-        const fc = fitCanvas(c);
+      if (c && p < 0.62 && canvasDue(c)) {
+        const fc = fitCanvas(c, 0.6); // soft aurora: 0.6x resolution is visually identical
         if (fc) {
           const { g, w, h } = fc;
           drawAurora(g, w, h, t, seg(p, 0, 0.5), seg(p, 0.05, 0.3) * (1 - seg(p, 0.38, 0.5)), vx, vy);
@@ -190,7 +194,8 @@ export default function TestimonialsScene() {
       const rr = eio(seg(p, 0.36, 0.56)) * Math.hypot(m.W, m.H) * 1.05;
       css(white.current, {
         opacity: p > 0.36 ? 1 : 0,
-        clipPath: `circle(${rr}px at ${vx}px ${vy}px)`,
+        // once the circle covers the whole screen the clip is dropped (no repaint per frame)
+        clipPath: seg(p, 0.36, 0.56) >= 1 ? "none" : `circle(${rr}px at ${vx}px ${vy}px)`,
       });
       const RY = lerp(lerp(-50, -20, f), -18, st);
       const RX = lerp(lerp(55, 10, f), 8, st);

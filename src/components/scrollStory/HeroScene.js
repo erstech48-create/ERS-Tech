@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import Link from "next/link";
-import { useScene, fitCanvas, radial, toView, getMetrics, ax, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
+import { useScene, fitCanvas, canvasDue, radial, toView, getMetrics, ax, seg, eio, eo, lerp, clamp, rv, css } from "./engine";
 import { LAND_DOTS_B64 } from "./landDots";
 
 const D2R = Math.PI / 180;
@@ -67,12 +67,66 @@ const SHADES = ["#2b5fb4", "#3876d4", "#4b92ea", "#68b0f6", "#8fd0ff", "#c4ecff"
 
 function drawStars(g, w, h, t, alpha) {
   if (alpha <= 0) return;
-  for (const s of STARS) {
-    const tw = 0.45 + 0.55 * Math.sin(t * 1.3 + s.p);
-    g.fillStyle = `rgba(190,220,255,${0.5 * tw * alpha})`;
+  const ga = g.globalAlpha;
+  g.fillStyle = "rgb(190,220,255)";
+  for (let i = 0; i < STARS.length; i++) {
+    const s = STARS[i];
+    const a = 0.5 * (0.45 + 0.55 * Math.sin(t * 1.3 + s.p)) * alpha;
+    if (a <= 0) continue;
+    g.globalAlpha = ga * a;
     g.fillRect(s.x * w, s.y * h, s.r * 1.6, s.r * 1.6);
   }
+  g.globalAlpha = ga;
 }
+
+/* ---- precomputed geometry (built once, reused every frame: no per-frame allocations) ---- */
+let GRAT = null; // [{ v: Float32Array(xyz...) }] for each graticule line
+function graticule() {
+  if (GRAT) return GRAT;
+  GRAT = [];
+  const push = (pts) => {
+    const a = new Float32Array(pts.length * 3);
+    pts.forEach((v, i) => a.set(v, i * 3));
+    GRAT.push(a);
+  };
+  for (let la = -60; la <= 60; la += 30) {
+    const pts = [];
+    for (let lo = -180; lo <= 180; lo += 4) pts.push(v3(la, lo));
+    push(pts);
+  }
+  for (let lo = -180; lo < 180; lo += 30) {
+    const pts = [];
+    for (let la = -88; la <= 88; la += 4) pts.push(v3(la, lo));
+    push(pts);
+  }
+  return GRAT;
+}
+const ARC_N = 64;
+let ARC_BASE = null; // per city: { b, lift, full: Float32Array(65*3) unrotated arc for lim = 1 }
+const ARC_PTS = Array.from({ length: 10 }, () => new Float32Array((ARC_N + 1) * 3)); // projected x, y, z
+function arcBase() {
+  if (ARC_BASE) return ARC_BASE;
+  const hq = v3(...HQ);
+  ARC_BASE = CITIES.map((c) => {
+    const b = v3(...c);
+    const dist = Math.acos(clamp(hq[0] * b[0] + hq[1] * b[1] + hq[2] * b[2], -1, 1));
+    const lift = 0.06 + dist * 0.13;
+    const full = new Float32Array((ARC_N + 1) * 3);
+    for (let i = 0; i <= ARC_N; i++) {
+      const u = i / ARC_N;
+      const hh = 1 + lift * Math.sin(Math.PI * u);
+      const v = slerp(hq, b, u);
+      full[i * 3] = v[0] * hh;
+      full[i * 3 + 1] = v[1] * hh;
+      full[i * 3 + 2] = v[2] * hh;
+    }
+    return { b, lift, full };
+  });
+  return ARC_BASE;
+}
+// land-dot buckets, reused every frame
+let BUCKETS = null;
+let BUCKET_N = null;
 
 let cachedG = null;
 let cachedGrads = null;
@@ -89,6 +143,12 @@ function getGradients(g, cx, cy, R) {
     lastCx = cx;
     lastCy = cy;
     lastR = R;
+    cachedGrads = buildGradients(g, cx, cy, R);
+  }
+  return cachedGrads;
+}
+function buildGradients(g, cx, cy, R) {
+  {
     const atmo = radial(g, cx, cy, R * 0.92, cx, cy, R * 1.42);
     atmo.addColorStop(0, "rgba(64,170,255,0.55)");
     atmo.addColorStop(0.18, "rgba(38,140,237,0.26)");
@@ -109,9 +169,53 @@ function getGradients(g, cx, cy, R) {
     rim.addColorStop(0, "rgba(80,190,255,0)");
     rim.addColorStop(1, "rgba(110,205,255,0.45)");
 
-    cachedGrads = { atmo, ocean, sheen, rim };
+    const night = g.createLinearGradient(cx - R * 0.3, cy - R * 0.3, cx + R, cy + R);
+    night.addColorStop(0, "rgba(2,8,28,0)");
+    night.addColorStop(1, "rgba(2,8,28,0.38)");
+
+    return { atmo, ocean, sheen, rim, night };
   }
-  return cachedGrads;
+}
+
+/* The globe body (atmosphere + ocean, and sheen + night side + rim) only
+   scales and moves with cx/cy/R, so its five big gradient layers are baked
+   once into two sprites at the largest size the scene uses, then blitted
+   (2 cheap passes instead of 5 full-size gradient fills every frame). */
+let SPR = null; // { key, base, over, A, dpr }
+function bakeLayer(size, dpr, paint) {
+  const cv = document.createElement("canvas");
+  cv.width = Math.ceil(size * dpr);
+  cv.height = Math.ceil(size * dpr);
+  const c = cv.getContext("2d");
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  paint(c);
+  return cv;
+}
+function globeSprites(g, Rref) {
+  const dpr = g.getTransform ? g.getTransform().a : 1;
+  const key = `${Math.round(Rref)}@${dpr}`;
+  if (SPR && SPR.key === key) return SPR;
+  const R = Rref;
+  const circle = (c, cx, cy, rad, fill) => {
+    c.fillStyle = fill;
+    c.beginPath();
+    c.arc(cx, cy, Math.max(0, rad), 0, 7);
+    c.fill();
+  };
+  const A = R * 1.42;
+  const base = bakeLayer(A * 2, dpr, (c) => {
+    const gr = buildGradients(c, A, A, R);
+    circle(c, A, A, R * 1.42, gr.atmo);
+    circle(c, A, A, R, gr.ocean);
+  });
+  const over = bakeLayer(R * 2, dpr, (c) => {
+    const gr = buildGradients(c, R, R, R);
+    circle(c, R, R, R, gr.sheen);
+    circle(c, R, R, R, gr.night);
+    circle(c, R, R, R, gr.rim);
+  });
+  SPR = { key, base, over, R };
+  return SPR;
 }
 
 function drawGlobe(g, w, h, o) {
@@ -122,42 +226,40 @@ function drawGlobe(g, w, h, o) {
   if (fade > 0.01) {
     g.save();
     g.globalAlpha = fade;
-    const grads = getGradients(g, cx, cy, R);
-    // atmosphere
-    g.fillStyle = grads.atmo;
-    g.beginPath();
-    g.arc(cx, cy, Math.max(0, R * 1.42), 0, 7);
-    g.fill();
-    // ocean body with lighting
-    g.fillStyle = grads.ocean;
-    g.beginPath();
-    g.arc(cx, cy, Math.max(0, R), 0, 7);
-    g.fill();
+    const spr = R > 4 ? globeSprites(g, Math.max(R, o.Rmax || 0)) : null;
+    const grads = spr ? null : getGradients(g, cx, cy, R);
+    if (spr) {
+      const A = R * 1.42;
+      g.drawImage(spr.base, cx - A, cy - A, A * 2, A * 2);
+    } else {
+      // atmosphere
+      g.fillStyle = grads.atmo;
+      g.beginPath();
+      g.arc(cx, cy, Math.max(0, R * 1.42), 0, 7);
+      g.fill();
+      // ocean body with lighting
+      g.fillStyle = grads.ocean;
+      g.beginPath();
+      g.arc(cx, cy, Math.max(0, R), 0, 7);
+      g.fill();
+    }
 
     const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(TILT), stt = Math.sin(TILT);
     // graticule
     g.lineWidth = 1;
     g.strokeStyle = "rgba(120,180,255,0.07)";
-    for (let la = -60; la <= 60; la += 30) {
+    const GR = graticule();
+    for (let li = 0; li < GR.length; li++) {
+      const V = GR[li];
       g.beginPath();
       let pen = false;
-      for (let lo = -180; lo <= 180; lo += 4) {
-        const v = v3(la, lo);
-        const [x, y, z] = rotate(v[0], v[1], v[2], cr, sr, ct, stt);
+      for (let i = 0; i < V.length; i += 3) {
+        const vx = V[i], vy = V[i + 1], vz = V[i + 2];
+        const x1 = vx * cr + vz * sr;
+        const z1 = -vx * sr + vz * cr;
+        const z = vy * stt + z1 * ct;
         if (z < 0) { pen = false; continue; }
-        const px = cx + x * R, py = cy - y * R;
-        if (!pen) { g.moveTo(px, py); pen = true; } else g.lineTo(px, py);
-      }
-      g.stroke();
-    }
-    for (let lo = -180; lo < 180; lo += 30) {
-      g.beginPath();
-      let pen = false;
-      for (let la = -88; la <= 88; la += 4) {
-        const v = v3(la, lo);
-        const [x, y, z] = rotate(v[0], v[1], v[2], cr, sr, ct, stt);
-        if (z < 0) { pen = false; continue; }
-        const px = cx + x * R, py = cy - y * R;
+        const px = cx + x1 * R, py = cy - (vy * ct - z1 * stt) * R;
         if (!pen) { g.moveTo(px, py); pen = true; } else g.lineTo(px, py);
       }
       g.stroke();
@@ -168,62 +270,94 @@ function drawGlobe(g, w, h, o) {
     const n = L.length / 3;
     const step = small ? 2 : 1;
     const ds = Math.max(1.7, R / 190) * (small ? 1.3 : 1);
-    const paths = SHADES.map(() => new Path2D());
-    for (let i = 0; i < n; i += step) {
-      const [x, y, z] = rotate(L[i * 3], L[i * 3 + 1], L[i * 3 + 2], cr, sr, ct, stt);
-      if (z < 0.02) continue;
-      const lit = clamp(0.3 + 0.8 * Math.max(0, x * LX + y * LY + z * LZ));
-      const edge = clamp(z * 2.2);
-      const b = Math.min(SHADES.length - 1, Math.floor(lit * edge * SHADES.length));
-      const d = ds * (0.6 + 0.4 * z);
-      paths[b].rect(cx + x * R - d / 2, cy - y * R - d / 2, d, d);
+    const NS = SHADES.length;
+    if (!BUCKETS || BUCKETS[0].length < n * 3) {
+      BUCKETS = SHADES.map(() => new Float32Array(n * 3));
+      BUCKET_N = new Int32Array(NS);
     }
-    paths.forEach((p, i) => {
-      g.fillStyle = SHADES[i];
-      g.fill(p);
-    });
+    BUCKET_N.fill(0);
+    for (let i = 0; i < n; i += step) {
+      const lx = L[i * 3], ly = L[i * 3 + 1], lz = L[i * 3 + 2];
+      const x = lx * cr + lz * sr;
+      const z1 = -lx * sr + lz * cr;
+      const z = ly * stt + z1 * ct;
+      if (z < 0.02) continue;
+      const y = ly * ct - z1 * stt;
+      let dot = x * LX + y * LY + z * LZ;
+      if (dot < 0) dot = 0;
+      let lit = 0.3 + 0.8 * dot;
+      if (lit > 1) lit = 1;
+      let edge = z * 2.2;
+      if (edge > 1) edge = 1;
+      const b = Math.min(NS - 1, Math.floor(lit * edge * NS));
+      const d = ds * (0.6 + 0.4 * z);
+      const arr = BUCKETS[b];
+      const k = BUCKET_N[b];
+      arr[k] = cx + x * R - d / 2;
+      arr[k + 1] = cy - y * R - d / 2;
+      arr[k + 2] = d;
+      BUCKET_N[b] = k + 3;
+    }
+    for (let bi = 0; bi < NS; bi++) {
+      const arr = BUCKETS[bi];
+      const m = BUCKET_N[bi];
+      if (!m) continue;
+      g.beginPath();
+      for (let k = 0; k < m; k += 3) g.rect(arr[k], arr[k + 1], arr[k + 2], arr[k + 2]);
+      g.fillStyle = SHADES[bi];
+      g.fill();
+    }
 
     // specular sheen + night side + fresnel rim
-    g.fillStyle = grads.sheen;
-    g.beginPath();
-    g.arc(cx, cy, Math.max(0, R), 0, 7);
-    g.fill();
-    const grL = g.createLinearGradient(cx - R * 0.3, cy - R * 0.3, cx + R, cy + R);
-    grL.addColorStop(0, "rgba(2,8,28,0)");
-    grL.addColorStop(1, "rgba(2,8,28,0.38)");
-    g.fillStyle = grL;
-    g.beginPath();
-    g.arc(cx, cy, Math.max(0, R), 0, 7);
-    g.fill();
-    g.fillStyle = grads.rim;
-    g.beginPath();
-    g.arc(cx, cy, Math.max(0, R), 0, 7);
-    g.fill();
+    if (spr) {
+      g.drawImage(spr.over, cx - R, cy - R, R * 2, R * 2);
+    } else {
+      g.fillStyle = grads.sheen;
+      g.beginPath();
+      g.arc(cx, cy, Math.max(0, R), 0, 7);
+      g.fill();
+      g.fillStyle = grads.night;
+      g.beginPath();
+      g.arc(cx, cy, Math.max(0, R), 0, 7);
+      g.fill();
+      g.fillStyle = grads.rim;
+      g.beginPath();
+      g.arc(cx, cy, Math.max(0, R), 0, 7);
+      g.fill();
+    }
 
     // arcs from HQ with travelling comets
     const hq = v3(...HQ);
     const grow = seg(t, 0.3, 2.4);
     g.lineCap = "round";
-    CITIES.forEach((c, k) => {
-      const b = v3(...c);
-      const dist = Math.acos(clamp(hq[0] * b[0] + hq[1] * b[1] + hq[2] * b[2], -1, 1));
-      const lift = 0.06 + dist * 0.13;
+    const AB = arcBase();
+    for (let k = 0; k < AB.length; k++) {
+      const { b, lift, full } = AB[k];
       const lim = clamp(grow * 1.5 - k * 0.07);
-      if (lim <= 0) return;
-      const pts = [];
-      for (let i = 0; i <= 64; i++) {
-        const u = (i / 64) * lim;
-        const hh = 1 + lift * Math.sin(Math.PI * u);
-        const v = slerp(hq, b, u);
-        const [x, y, z] = rotate(v[0] * hh, v[1] * hh, v[2] * hh, cr, sr, ct, stt);
-        pts.push([cx + x * R, cy - y * R, z]);
+      if (lim <= 0) continue;
+      const P = ARC_PTS[k];
+      for (let i = 0; i <= ARC_N; i++) {
+        let vx, vy, vz;
+        if (lim >= 1) {
+          vx = full[i * 3]; vy = full[i * 3 + 1]; vz = full[i * 3 + 2];
+        } else {
+          const u = (i / ARC_N) * lim;
+          const hh = 1 + lift * Math.sin(Math.PI * u);
+          const v = slerp(hq, b, u);
+          vx = v[0] * hh; vy = v[1] * hh; vz = v[2] * hh;
+        }
+        const x1 = vx * cr + vz * sr;
+        const z1 = -vx * sr + vz * cr;
+        P[i * 3] = cx + x1 * R;
+        P[i * 3 + 1] = cy - (vy * ct - z1 * stt) * R;
+        P[i * 3 + 2] = vy * stt + z1 * ct;
       }
       g.beginPath();
       let pen = false;
-      pts.forEach(([x, y, z]) => {
-        if (z < -0.05) { pen = false; return; }
-        if (!pen) { g.moveTo(x, y); pen = true; } else g.lineTo(x, y);
-      });
+      for (let i = 0; i <= ARC_N; i++) {
+        if (P[i * 3 + 2] < -0.05) { pen = false; continue; }
+        if (!pen) { g.moveTo(P[i * 3], P[i * 3 + 1]); pen = true; } else g.lineTo(P[i * 3], P[i * 3 + 1]);
+      }
       g.strokeStyle = "rgba(90,190,255,0.32)";
       g.lineWidth = 1.4;
       g.stroke();
@@ -234,17 +368,17 @@ function drawGlobe(g, w, h, o) {
           const u0 = head - (tail * s) / 10;
           const u1 = head - (tail * (s + 1)) / 10;
           if (u1 < 0) break;
-          const a0 = pts[Math.round(u0 * 64)];
-          const a1 = pts[Math.round(u1 * 64)];
-          if (!a0 || !a1 || a0[2] < -0.05 || a1[2] < -0.05) continue;
+          const i0 = Math.round(u0 * ARC_N) * 3;
+          const i1 = Math.round(u1 * ARC_N) * 3;
+          if (P[i0 + 2] < -0.05 || P[i1 + 2] < -0.05) continue;
           g.strokeStyle = `rgba(170,230,255,${(1 - s / 10) * 0.95})`;
           g.lineWidth = 2.6 * (1 - s / 12);
           g.beginPath();
-          g.moveTo(a0[0], a0[1]);
-          g.lineTo(a1[0], a1[1]);
+          g.moveTo(P[i0], P[i0 + 1]);
+          g.lineTo(P[i1], P[i1 + 1]);
           g.stroke();
         }
-        const end = pts[64];
+        const end = [P[ARC_N * 3], P[ARC_N * 3 + 1], P[ARC_N * 3 + 2]];
         if (end[2] > 0) {
           const ph = (t * 0.8 + k * 0.3) % 1;
           g.strokeStyle = `rgba(120,210,255,${0.7 * (1 - ph)})`;
@@ -258,7 +392,7 @@ function drawGlobe(g, w, h, o) {
           g.fill();
         }
       }
-    });
+    }
     const [hx, hy, hz] = rotate(hq[0], hq[1], hq[2], cr, sr, ct, stt);
     if (hz > 0) {
       const px = cx + hx * R, py = cy - hy * R;
@@ -322,6 +456,7 @@ export default function HeroScene() {
     return () => {
       cachedG = null;
       cachedGrads = null;
+      SPR = null;
       lastCx = -999;
       lastCy = -999;
       lastR = -999;
@@ -348,10 +483,11 @@ export default function HeroScene() {
           ? toView(ax(215, 0.5), lerp(655, 430, z))
           : toView(lerp(ax(1390, 0.9), ax(960, 0.5), z), lerp(470, 424, z));
         const [ccx, ccy] = mob ? toView(ax(215, 0.5), 430) : toView(ax(960, 0.5), 424);
-        drawGlobe(g, w, h, {
+        if (canvasDue(c)) drawGlobe(g, w, h, {
           cx: gx,
           cy: gy,
           R: (mob ? lerp(175, 300, z) : lerp(380, 640, z)) * m.s,
+          Rmax: (mob ? 300 : 640) * m.s,
           small: mob,
           rot: -1.05 + t * 0.045 + p * 0.9,
           t,

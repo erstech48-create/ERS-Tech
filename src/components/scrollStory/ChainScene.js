@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useScene, fitCanvas, radial, getMetrics, toView, ax, seg, eio, eo, lerp, rv, css } from "./engine";
+import { useScene, fitCanvas, canvasDue, radial, getMetrics, toView, ax, seg, eio, eo, lerp, rv, css } from "./engine";
 import Aconomy from "@/../public/assets/projects/aconomy.webp";
 import BCCOIN from "@/../public/assets/projects/bccoin.webp";
 import ABot from "@/../public/assets/projects/a-bot.webp";
@@ -34,29 +34,63 @@ const PARTS = Array.from({ length: 160 }, (_, i) => ({
 let bgFrame = 0;
 let cachedLines = [];
 
-function drawBg(g, w, h, t, cx, spread, speed) {
-  const m = getMetrics();
-  const mob = m.mobile;
-  let gr = radial(g, cx, h * 0.5, 0, cx, h * 0.5, Math.max(w, h) * 0.75);
+/* Pre-rendered gradient layers. Big radial gradients are smooth, so they are
+   drawn once into small offscreen canvases and stretched with drawImage
+   (identical look, a fraction of the per-frame fill cost). */
+const BG_RES = 0.25;
+let bgCache = null; // { key, cv }
+function bgLayer(w, h, cx) {
+  const key = `${Math.round(w)}x${Math.round(h)}@${Math.round(cx)}`;
+  if (bgCache && bgCache.key === key) return bgCache.cv;
+  const cw = Math.max(8, Math.ceil(w * BG_RES));
+  const ch = Math.max(8, Math.ceil(h * BG_RES));
+  const cv = bgCache ? bgCache.cv : document.createElement("canvas");
+  cv.width = cw;
+  cv.height = ch;
+  const g = cv.getContext("2d");
+  g.setTransform(cw / w, 0, 0, ch / h, 0, 0);
+  const gr = radial(g, cx, h * 0.5, 0, cx, h * 0.5, Math.max(w, h) * 0.75);
   gr.addColorStop(0, "#0b2c7a");
   gr.addColorStop(0.45, "#061844");
   gr.addColorStop(1, "#020818");
   g.fillStyle = gr;
   g.fillRect(0, 0, w, h);
+  bgCache = { key, cv };
+  return cv;
+}
+const glowCache = {}; // colour -> sprite canvas (radius 64 px, scaled on draw)
+function glowSprite(c) {
+  if (glowCache[c]) return glowCache[c];
+  const S = 64;
+  const cv = document.createElement("canvas");
+  cv.width = S * 2;
+  cv.height = S * 2;
+  const g = cv.getContext("2d");
+  const gg = radial(g, S, S, 0, S, S, S);
+  gg.addColorStop(0, c);
+  gg.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = gg;
+  g.fillRect(0, 0, S * 2, S * 2);
+  glowCache[c] = cv;
+  return cv;
+}
+const GLOWS_M = [[0.85, 0.75, "rgba(38,175,237,0.14)"]];
+const GLOWS_D = [[0.15, 0.25, "rgba(110,75,255,0.18)"], [0.85, 0.75, "rgba(38,175,237,0.16)"]];
+
+function drawBg(g, w, h, t, cx, spread, speed) {
+  const m = getMetrics();
+  const mob = m.mobile;
+  g.imageSmoothingEnabled = true;
+  g.drawImage(bgLayer(w, h, cx), 0, 0, w, h);
   // soft colour glows
-  const glows = mob
-    ? [[0.85, 0.75, "rgba(38,175,237,0.14)"]]
-    : [[0.15, 0.25, "rgba(110,75,255,0.18)"], [0.85, 0.75, "rgba(38,175,237,0.16)"]];
-  glows.forEach(([x, y, c], k) => {
+  const glows = mob ? GLOWS_M : GLOWS_D;
+  for (let k = 0; k < glows.length; k++) {
+    const [x, y, c] = glows[k];
     const px = w * x + Math.sin(t * 0.2 + k) * 60;
     const py = h * y + Math.cos(t * 0.17 + k) * 40;
     const r = Math.max(w, h) * 0.45;
-    const gg = radial(g, px, py, 0, px, py, r);
-    gg.addColorStop(0, c);
-    gg.addColorStop(1, "rgba(0,0,0,0)");
-    g.fillStyle = gg;
-    g.fillRect(0, 0, w, h);
-  });
+    g.drawImage(glowSprite(c), px - r, py - r, r * 2, r * 2);
+  }
   // constellation: 20 nodes on mobile, 60 on desktop
   const numNodes = mob ? 20 : 60;
   const pts = NODES.slice(0, numNodes).map((n) => [
@@ -100,8 +134,8 @@ function drawBg(g, w, h, t, cx, spread, speed) {
     const q = PARTS[p];
     const x = cx + q.side * (spread * 0.35 + q.off * spread);
     const y = h - (((q.y * h + t * q.v * 90 * speed) % (h + 60)) - 30);
-    const a = 0.25 + 0.55 * (1 - q.off);
-    g.fillStyle = `rgba(170,230,255,${Math.round(a * 100) / 100})`;
+    if (!q.fs) q.fs = `rgba(170,230,255,${Math.round((0.25 + 0.55 * (1 - q.off)) * 100) / 100})`;
+    g.fillStyle = q.fs;
     g.fillRect(x - q.s / 2, y, q.s, 24 * q.s);
   }
 }
@@ -127,7 +161,8 @@ export default function ChainScene() {
     render(p, t, mode) {
       const c = cv.current;
       if (!c) return;
-      const fc = fitCanvas(c);
+      // soft background only (gradients, faint lines, particles): 0.7x resolution
+      const fc = fitCanvas(c, 0.7);
       if (!fc) return;
       const { g, w, h } = fc;
       if (mode !== "anim") {
@@ -145,12 +180,18 @@ export default function ChainScene() {
       const cy = endC - 600 * (1 - eo(seg(p, 0, 0.72)));
       css(chain.current, { left: `${CX}px`, top: `${CY}px`, transform: `scale(${s}) translateY(${-cy}px)` });
       const [vcx] = toView(CX, 0);
-      drawBg(g, w, h, t, vcx, (mob ? lerp(120, 90, zk) : lerp(260, 380, zk)) * m.s, 0.6 + s * 0.4);
+      if (canvasDue(c)) drawBg(g, w, h, t, vcx, (mob ? lerp(120, 90, zk) : lerp(260, 380, zk)) * m.s, 0.6 + s * 0.4);
 
       ["h1", "h2", "h3"].forEach((k, i) => rv(r.current[k], eo(seg(p, 0.3 + i * 0.06, 0.46 + i * 0.06)), 60));
       const headK = eo(seg(p, 0.28, 0.42));          // same timing as the first headline line
       const headEl = r.current.eyebrow?.parentElement; // the .hs-chain-head element
-      if (headEl) headEl.style.setProperty("--hs-head-bg", m.mobile ? String(headK) : "1");
+      if (headEl) {
+        const hb = m.mobile ? String(Math.round(headK * 1000) / 1000) : "1";
+        if (headEl.__hsHb !== hb) {
+          headEl.__hsHb = hb;
+          headEl.style.setProperty("--hs-head-bg", hb);
+        }
+      }
       rv(r.current.eyebrow, eo(seg(p, m.mobile ? 0.28 : 0.25, m.mobile ? 0.42 : 0.38)), 20);
       rv(r.current.sub, eo(seg(p, 0.5, 0.62)), 20);
       rv(r.current.stats, eo(seg(p, 0.56, 0.68)), 20);
