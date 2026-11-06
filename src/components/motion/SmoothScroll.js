@@ -27,11 +27,9 @@ export default function SmoothScroll({ children }) {
       };
     }
 
-    // Calmer, more controlled scrolling: smaller distance per wheel/touchpad
-    // tick and a softer catch-up so pinned scenes never "jump".
     const lenis = new Lenis({
-      lerp: 0.075,
-      wheelMultiplier: 0.7,
+      lerp: 0.1,
+      wheelMultiplier: 1,
       touchMultiplier: 1,
       syncTouch: false,
       smoothWheel: true,
