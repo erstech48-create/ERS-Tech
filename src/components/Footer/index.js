@@ -105,31 +105,33 @@ function Footer() {
                       </button>
                     </form>
                   </Box>
-                  <Box className="mt-6">
-                    <a
-                      href="https://www.codehype.ai/product/ers-tech?utm_source=codehype_badge"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block transition-transform duration-200 hover:scale-105"
-                    >
-                      <img
-                        src="https://www.codehype.ai/badges/ers-tech.svg?variant=find-us&v=20"
-                        alt="Featured on CodeHype"
-                        width="180"
-                        height="65"
-                        loading="lazy"
-                        decoding="async"
-                        style={{
-                          display: "inline-block",
-                          border: 0,
-                          width: "100%",
-                          maxWidth: "180px",
-                          height: "auto",
-                          maxHeight: "65px",
-                        }}
-                      />
-                    </a>
-                  </Box>
+                  {false && (
+                    <Box className="mt-6">
+                      <a
+                        href="https://www.codehype.ai/product/ers-tech?utm_source=codehype_badge"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block transition-transform duration-200 hover:scale-105"
+                      >
+                        <img
+                          src="https://www.codehype.ai/badges/ers-tech.svg?variant=find-us&v=20"
+                          alt="Featured on CodeHype"
+                          width="180"
+                          height="65"
+                          loading="lazy"
+                          decoding="async"
+                          style={{
+                            display: "inline-block",
+                            border: 0,
+                            width: "100%",
+                            maxWidth: "180px",
+                            height: "auto",
+                            maxHeight: "65px",
+                          }}
+                        />
+                      </a>
+                    </Box>
+                  )}
                 </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={6} lg={2}>
