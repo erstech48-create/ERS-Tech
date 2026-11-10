@@ -98,7 +98,8 @@ export default function TravelCube() {
         return;
       }
       const yRaw = window.scrollY;
-      sy0 += (yRaw - sy0) * (1 - Math.exp(-dt * 7));
+      const follow = m0.mobile ? 14 : 9;
+      sy0 += (yRaw - sy0) * (1 - Math.exp(-dt * follow));
       if (Math.abs(yRaw - sy0) < 0.5) sy0 = yRaw;
       const y = sy0;
       let i = 0;
