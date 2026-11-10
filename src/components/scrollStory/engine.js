@@ -18,8 +18,13 @@ export const STAGE_W_M = 430;
 export const STAGE_H_M = 860;
 const MAX_STAGE_W_M = 560;
 export const DESKTOP_MQ = "(min-width: 768px)";
+// How much scroll each pinned scene takes. 1 = original length.
+// Lower = less scrolling for the same animation.
+const SCROLL_LENGTH_DESKTOP = 0.7;
+const SCROLL_LENGTH_MOBILE = 0.75;
 // Higher = scroll animations follow the scrollbar more tightly.
-const FOLLOW = 7;
+const FOLLOW_DESKTOP = 9;
+const FOLLOW_MOBILE = 14;
 
 /* ---------------- inline style helpers (tracked so they can be undone) ---------------- */
 const kebab = (k) => k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
@@ -227,8 +232,9 @@ export function useScene(ref, opts) {
       if (reduced) return undefined;
       enterAnim();
       updateMetrics();
-      const len = opts.length;
-      const tail = opts.tail || 0;
+      const k = metrics.mobile ? SCROLL_LENGTH_MOBILE : SCROLL_LENGTH_DESKTOP;
+      const len = opts.length * k;
+      const tail = (opts.tail || 0) * k;
       let target = 0;
       let shown = 0;
       const wrap = opts.wipeIn ? (el.closest(".hs-wipe-wrap") || el) : null;
@@ -266,7 +272,7 @@ export function useScene(ref, opts) {
         setClip(0);
         wipe = ScrollTrigger.create({
           trigger: wrap || el,
-          start: "top bottom",
+          start: () => "top+=" + metrics.H * (1 - k) + " bottom",
           end: "top top",
           invalidateOnRefresh: true,
           onUpdate: (self) => setClip(self.progress),
@@ -299,7 +305,7 @@ export function useScene(ref, opts) {
         }
         setOn(true);
         // ease the shown progress toward the scroll target (frame-rate independent)
-        const follow = metrics.mobile ? 16 : 12;
+        const follow = metrics.mobile ? FOLLOW_MOBILE : FOLLOW_DESKTOP;
         shown += (target - shown) * (1 - Math.exp(-dt * follow));
         if (Math.abs(target - shown) < 0.0005) shown = target;
 
